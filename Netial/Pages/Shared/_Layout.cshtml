@@ -9,18 +9,18 @@
     <link rel="stylesheet" href="~/Netial.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar border-bottom box-shadow mb-3">
+    <header id="header">
+        <nav class="navbar box-shadow mb-3">
+            <a class="navbar-brand" asp-area="" asp-page="/Index">Netial</a>
             <div class="container navbar">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">Netial</a>
                 <div class="navbar-buttons-center">
-                    <div class="nav-item">
+                    <div class="nav-item" @(Url.Action().Contains("MyPage") ? "selected" : "")>
                         <a class="nav-link text-dark" asp-area="" asp-page="/MyPage">Моя страница</a>
                     </div>
-                    <div class="nav-item">
+                    <div class="nav-item" @(Url.Action() == "/" ? "selected" : "")>
                         <a class="nav-link text-dark" asp-area="" asp-page="/Index">Новости</a>
                     </div>
-                    <div class="nav-item">
+                    <div class="nav-item" @(Url.Action().Contains("Messenger") ? "selected" : "")>
                         <a class="nav-link text-dark" asp-area="" asp-page="/Messenger">Сообщения</a>
                     </div>
                 </div>
