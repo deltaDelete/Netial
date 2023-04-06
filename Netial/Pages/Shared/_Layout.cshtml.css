@@ -86,3 +86,7 @@ div.navbar-nav {
     display: inline;
 }
 
+body > div.container {
+    padding: 6rem;
+}
+
