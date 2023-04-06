@@ -3,6 +3,7 @@
 :root {
     --bs-font-sans-serif: Montserrat, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --bs-body-bg: #333333;
+    --bs-body-color: white;
 }
 
 html {
@@ -33,4 +34,5 @@ a.navbar-brand {
 #header {
     position: fixed;
     width: 100%;
+    height: 4rem;
 }
