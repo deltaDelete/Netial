@@ -1,0 +1,25 @@
+@import url('https://fonts.cdnfonts.com/css/montserrat');
+
+:root {
+    --bs-font-sans-serif: Montserrat, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
+
+html {
+    font-size: 14px;
+    font-family: Montserrat;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
