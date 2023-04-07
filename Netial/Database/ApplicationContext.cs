@@ -8,6 +8,7 @@ public class ApplicationContext : DbContext {
     private string _connectionString = string.Empty;
 
     public DbSet<User> Users { get; set; } = null;
+    public DbSet<UserAccount> Accounts { get; set; } = null;
 
     public ApplicationContext(IConfiguration configuration) {
         _configuration = configuration;
