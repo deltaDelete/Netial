@@ -1,25 +1,50 @@
-﻿@inject ILogger<Login> _logger
+﻿@using Netial.Components
+@using Netial.Models
+
+@inject ILogger<Login> _logger
+@inject NavigationManager _navManager
 @page "/login"
 
-<PageTitle>Вход</PageTitle>
+<PageTitle>Вход - Netial</PageTitle>
 
-<div class="text-center">
-    <form method="post" class="stack">
-        <p>
-            <label>Логин</label><br />
-            <input name='login' />
-        </p>
-        <p>
-            <label>Пароль</label><br />
-            <input type="password" name="password" />
-        </p>
-        @*<component type="typeof(Button)" render-mode="Static" param-Text="@("Войти")" param-OnClick="@Model.Click" />*@
-        <button type="submit" @onclick="@(Click)" >Войти</button>
-    </form>
+<div class="flex-row flex-x-center align-items-center">
+    <div class="text-center login-container">
+        <EditForm Model="Model" class="stack flex-x-stretch flex-column" OnSubmit="SubmitForm">
+            
+        @* <form @onsubmit="SubmitForm" method="post" class="stack flex-x-stretch flex-column"> *@
+        @* </form> *@
+            <p>
+                <label>Логин</label><br/>
+                <InputText @bind-Value="@(Model.Email)" name='login' class="input"/>
+            </p>
+            <p>
+                <label>Пароль</label><br/>
+                <InputText @bind-Value="@(Model.Password)" type="password" name="password" class="input"/>
+            </p>
+            @*<component type="typeof(Button)" render-mode="Static" param-Text="@("Войти")" param-OnClick="@Model.Click" />*@
+            <Button Type="submit" OnClick="Click" Text="Войти" Selected="true"/>
+            <Button IsLink="true" OnClick="GotoRegister" Text="Зарегистрироваться" Selected="false"/>
+        </EditForm>
+    </div>
 </div>
 
 @code {
+    public EmailPass Model { get; set; } = new();
+
     private void Click() {
         _logger.LogInformation("Ба");
+    }
+
+    private void GotoRegister() {
+        _navManager.NavigateTo("/register");
+    }
+
+    private void SubmitForm(EditContext obj) {
+        throw new NotImplementedException();
+    }
+
+    public class EmailPass {
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
 }

@@ -1,0 +1,29 @@
+.btn {
+    background: #BBBBBB;
+    border-radius: .6rem;
+    height: 2.4rem;
+    min-width: 10rem;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.btn > button,
+.btn > input[type="submit"],
+.btn > input[type="reset"],
+.btn > a {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn:hover,
+.btn[selected] {
+    background: #F9F9F9;
+}

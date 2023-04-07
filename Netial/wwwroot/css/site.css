@@ -3,14 +3,24 @@
 @import url('https://fonts.cdnfonts.com/css/montserrat');
 
 :root {
+    --netial-body-bg: #333333;
+    --netial-container-bg: #444444;
+    --netial-text-color: white;
+    --netial-primary-color: #f9f9f9;
+    
+    --netial-primary-radius: 1.5rem;
+    --netial-secondary-radius: 1rem;
+    --netial-trinary-radius: 0.75rem;
+    --netial-tetriary-radius: 0.5rem;
+    
     --bs-font-sans-serif: Montserrat, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --bs-body-bg: #333333;
-    --bs-body-color: white;
+    --bs-body-bg: var(--netial-body-bg);
+    --bs-body-color: var(--netial-text-color);
+    
 }
 
 html {
     font-size: 14px;
-    font-family: Montserrat;
 }
 
 @media (min-width: 768px) {
@@ -191,3 +201,42 @@ body > div.container {
     padding: 6rem;
 }
 
+.stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-x-center {
+    justify-content: center;
+}
+
+.flex-y-center {
+    align-items: center;
+    align-content: center;
+}
+
+.flex-x-stretch {
+    align-items: stretch;
+}
+
+.input {
+    background-color: var(--netial-body-bg);
+    color: var(--netial-primary-color);
+    border: none;
+    border-radius: var(--netial-tetriary-radius);
+    padding: 0.125rem 0.5rem;
+    height: 2rem;
+    user-select: text;
+}
