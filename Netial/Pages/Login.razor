@@ -1,0 +1,25 @@
+﻿@inject ILogger<Login> _logger
+@page "/login"
+
+<PageTitle>Вход</PageTitle>
+
+<div class="text-center">
+    <form method="post" class="stack">
+        <p>
+            <label>Логин</label><br />
+            <input name='login' />
+        </p>
+        <p>
+            <label>Пароль</label><br />
+            <input type="password" name="password" />
+        </p>
+        @*<component type="typeof(Button)" render-mode="Static" param-Text="@("Войти")" param-OnClick="@Model.Click" />*@
+        <button type="submit" @onclick="@(Click)" >Войти</button>
+    </form>
+</div>
+
+@code {
+    private void Click() {
+        _logger.LogInformation("Ба");
+    }
+}

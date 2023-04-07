@@ -1,10 +1,13 @@
-using Netial.Database;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Netial.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddDbContext<ApplicationContext>();
+builder.Services.AddServerSideBlazor();
+builder.Services.AddSingleton<WeatherForecastService>();
 
 var app = builder.Build();
 
@@ -16,16 +19,12 @@ if (!app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
-
-app.MapGet("/testuser", (ApplicationContext db) => {
-    return db.Users.ToList();
-});
-
-app.MapRazorPages();
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
 
 app.Run();

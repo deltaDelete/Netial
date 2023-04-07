@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Netial", "Netial\Netial.csproj", "{C0A59641-DDAF-4DBA-B9A5-C74DB79426FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Netial", "Netial\Netial.csproj", "{052942E5-EBDC-46A2-91CA-535B8A73F466}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C0A59641-DDAF-4DBA-B9A5-C74DB79426FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C0A59641-DDAF-4DBA-B9A5-C74DB79426FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C0A59641-DDAF-4DBA-B9A5-C74DB79426FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C0A59641-DDAF-4DBA-B9A5-C74DB79426FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{052942E5-EBDC-46A2-91CA-535B8A73F466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{052942E5-EBDC-46A2-91CA-535B8A73F466}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{052942E5-EBDC-46A2-91CA-535B8A73F466}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{052942E5-EBDC-46A2-91CA-535B8A73F466}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {01D5B662-EE91-420C-AACF-DC2CC73478CF}
+		SolutionGuid = {2256C831-2227-4E3A-A125-F15DD84512D7}
 	EndGlobalSection
 EndGlobal
