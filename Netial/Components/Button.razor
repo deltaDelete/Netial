@@ -1,0 +1,22 @@
+@using Microsoft.AspNetCore.Mvc.Razor
+<div class="btn" selected="@Selected">
+    @if (IsLink) {
+        <a class="nav-link text-dark" @onclick="OnClick">@Text</a>
+    }
+    else {
+        <button type="@(Type is null ? "submit" : Type)" class="nav-link text-dark" @onclick="OnClick">@Text</button>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Text { get; set; }
+    [Parameter]
+    public bool Selected { get; set; }
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    [Parameter]
+    public string? Type { get; set; }
+    [Parameter]
+    public bool IsLink { get; set; }
+}

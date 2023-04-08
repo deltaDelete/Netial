@@ -1,0 +1,21 @@
+div.login-container {
+    display: inline-block;
+    padding: 1rem;
+    border-radius: var(--netial-primary-radius);
+    background-color: var(--netial-container-bg);
+}
+
+div.login-container > form > p > input,
+.input {
+    background-color: var(--netial-body-bg);
+    color: var(--netial-primary-color);
+    border: none;
+    border-radius: var(--netial-tetriary-radius);
+    padding: 0.125rem 0.5rem;
+    height: 2rem;
+    user-select: text;
+}
+
+div.login-container > form > p > label {
+    color: var(--netial-primary-color);
+}
