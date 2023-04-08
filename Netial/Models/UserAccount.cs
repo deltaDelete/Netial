@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Netial.Models; 
 
+[Obsolete]
 public class UserAccount {
     [Column("account_id")]
     [Key]

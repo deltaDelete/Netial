@@ -5,13 +5,14 @@ namespace Netial.Database;
 
 public class ApplicationContext : DbContext {
     private readonly IConfiguration _configuration;
+    private readonly ILogger<ApplicationContext> _logger;
     private string _connectionString = string.Empty;
 
     public DbSet<User> Users { get; set; } = null;
-    public DbSet<UserAccount> Accounts { get; set; } = null;
 
-    public ApplicationContext(IConfiguration configuration) {
+    public ApplicationContext(IConfiguration configuration, ILogger<ApplicationContext> logger) {
         _configuration = configuration;
+        _logger = logger;
         _connectionString = _configuration.GetConnectionString("DefaultConnection");
         Database.EnsureCreated();
     }
