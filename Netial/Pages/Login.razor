@@ -1,5 +1,5 @@
-﻿@using Netial.Components
-@using Netial.Models
+﻿@using Netial.Helpers
+@using Microsoft.AspNetCore.Authentication.Cookies
 
 @inject ILogger<Login> _logger
 @inject NavigationManager _navManager
@@ -9,42 +9,69 @@
 
 <div class="flex-row flex-x-center align-items-center">
     <div class="text-center login-container">
-        <EditForm Model="Model" class="stack flex-x-stretch flex-column" OnSubmit="SubmitForm">
             
-        @* <form @onsubmit="SubmitForm" method="post" class="stack flex-x-stretch flex-column"> *@
-        @* </form> *@
+        <form method="post" class="stack flex-x-stretch flex-column">
             <p>
-                <label>Логин</label><br/>
-                <InputText @bind-Value="@(Model.Email)" name='login' class="input"/>
+                <label for="email">Логин</label><br/>
+                <input type="email" @bind-value="@(Model.Email)" required="required" id="email" name='email' class="input"/>
             </p>
             <p>
-                <label>Пароль</label><br/>
-                <InputText @bind-Value="@(Model.Password)" type="password" name="password" class="input"/>
+                <label for="password">Пароль</label><br/>
+                <input type="password" @bind-value="@(Model.Password)" id="password" name="password" required="required" minlength="8" class="input"/>
             </p>
-            @*<component type="typeof(Button)" render-mode="Static" param-Text="@("Войти")" param-OnClick="@Model.Click" />*@
             <Button Type="submit" OnClick="Click" Text="Войти" Selected="true"/>
             <Button IsLink="true" OnClick="GotoRegister" Text="Зарегистрироваться" Selected="false"/>
-        </EditForm>
+            <p class="d-block" danger>@Message</p>
+        </form>
     </div>
 </div>
 
 @code {
+    public string? ReturnUrl { get; set; }
+    public string Message { get; set; } = string.Empty;
     public EmailPass Model { get; set; } = new();
 
+    protected override async void OnInitialized() {
+        var query = UriQuery.QueryDictionary(new Uri(_navManager.Uri).Query);
+        if (query.ContainsKey("returnUrl"))
+            ReturnUrl = query["returnUrl"];
+        if (query.ContainsKey("invalid")) {
+            Message = "Неверный логин и/или пароль";
+        }
+
+        base.OnInitialized();
+    }
+
     private void Click() {
-        _logger.LogInformation("Ба");
+        SubmitForm();
     }
 
     private void GotoRegister() {
         _navManager.NavigateTo("/register");
     }
 
-    private void SubmitForm(EditContext obj) {
-        throw new NotImplementedException();
+    private void SubmitForm() {
+        switch (string.IsNullOrEmpty(Model.Email), string.IsNullOrEmpty(Model.Password)) {
+            case (true, true):
+                Message = "Поля пусты";
+                return;
+                ;
+            case (true, false):
+                Message = "Введите пароль";
+                return;
+                ;
+            case (false, true):
+                Message = "Введите электронную почту";
+                return;
+                ;
+            case (false, false):
+                Message = string.Empty;
+                break;
+        }
     }
 
     public class EmailPass {
-        public string Email { get; set; }
+        public string Email  { get; set; }
         public string Password { get; set; }
     }
 }

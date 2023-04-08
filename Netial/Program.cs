@@ -49,11 +49,15 @@ app.MapPost("/login", async (string? returnUrl, HttpContext context, Application
 
     var form = context.Request.Form;
     if (!form.ContainsKey("email") || !form.ContainsKey("password")) {
-        return Results.BadRequest("Логин/пароль пусты");
+        return Results.Redirect("/login?invalid");
     }
 
     string email = form["email"];
     string password = form["password"];
+
+    if (string.IsNullOrWhiteSpace(password)) {
+        return Results.Redirect("/login?invalid");
+    }
     
     var emailNormalized = email.ToUpper();
     var query = db.Users
@@ -62,7 +66,7 @@ app.MapPost("/login", async (string? returnUrl, HttpContext context, Application
                     && u.PasswordHash == Cryptography.Sha256Hash(password+u.PasswordSalt));
 
     if (!query.Any()) {
-        return Results.Unauthorized();
+        return Results.Redirect("/login?invalid");
     }
     
     var claims = new List<Claim> {
@@ -73,7 +77,7 @@ app.MapPost("/login", async (string? returnUrl, HttpContext context, Application
     ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
     // установка аутентификационных куки
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-    return Results.Redirect(returnUrl??"/");
+    return Results.Redirect(returnUrl ?? "/");
 });
 
 app.MapBlazorHub();

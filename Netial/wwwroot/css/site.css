@@ -240,3 +240,15 @@ body > div.container {
     height: 2rem;
     user-select: text;
 }
+
+[danger] {
+    color: var(--bs-danger);
+}
+
+[warning] {
+    color: var(--bs-warning);
+}
+
+[info] {
+    color: var(--bs-info);
+}
