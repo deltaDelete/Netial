@@ -12,10 +12,16 @@ div.login-container > form > p > input,
     border: none;
     border-radius: var(--netial-tetriary-radius);
     padding: 0.125rem 0.5rem;
-    height: 2rem;
+    height: 3rem;
     user-select: text;
 }
 
 div.login-container > form > p > label {
     color: var(--netial-primary-color);
+    display: flex;
+    align-items: center;
+}
+
+.login-container > form > p {
+    margin: 0;
 }
