@@ -6,7 +6,7 @@ namespace Netial.Models;
 public class User {
     [Column("user_id")]
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     [Column("firstname")]
     public string FirstName { get; set; }
     [Column("lastname")]
@@ -14,7 +14,7 @@ public class User {
     [Column("birchdate")]
     public DateTime BirthDate { get; set; }
     [Column("creationdate")]
-    public DateTime CreationDate { get; set; }
+    public DateTime CreationDate { get; set; } = DateTime.Now;
     [Column("rating")]
     public int Rating { get; set; }
     
