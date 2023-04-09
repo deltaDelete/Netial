@@ -3,7 +3,7 @@
 
 @inject ILogger<Login> _logger
 @inject NavigationManager _navManager
-@page "/login"
+@page "/account/login"
 
 <PageTitle>Вход - Netial</PageTitle>
 
@@ -11,16 +11,16 @@
     <div class="text-center login-container">
             
         <form method="post" class="stack flex-x-stretch flex-column">
-            <p>
-                <label for="email">Логин</label><br/>
-                <input type="email" @bind-value="@(Model.Email)" required="required" id="email" name='email' class="input"/>
+            <p class="form-floating">
+                <input type="email" @bind-value="@(Model.Email)" required="required" id="email" name='email' class="input form-control" placeholder=" "/>
+                <label for="email">Логин</label>
             </p>
-            <p>
-                <label for="password">Пароль</label><br/>
-                <input type="password" @bind-value="@(Model.Password)" id="password" name="password" required="required" minlength="8" class="input"/>
+            <p class="form-floating">
+                <input type="password" @bind-value="@(Model.Password)" id="password" name="password" required="required" minlength="8" class="input form-control" placeholder=" "/>
+                <label for="password">Пароль</label>
             </p>
             <Button Type="submit" OnClick="Click" Text="Войти" Selected="true"/>
-            <Button IsLink="true" OnClick="GotoRegister" Text="Зарегистрироваться" Selected="false"/>
+            <Button IsLink="true" Href="/account/register" Text="Зарегистрироваться" Selected="false"/>
             <p class="d-block" danger>@Message</p>
         </form>
     </div>
@@ -44,10 +44,6 @@
 
     private void Click() {
         SubmitForm();
-    }
-
-    private void GotoRegister() {
-        _navManager.NavigateTo("/register");
     }
 
     private void SubmitForm() {

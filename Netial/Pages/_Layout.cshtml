@@ -1,4 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using Netial.Components
 @namespace Netial.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -14,24 +16,7 @@
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
-    <header id="header">
-        <nav class="navbar box-shadow mb-3">
-            <a class="navbar-brand" asp-area="" asp-page="/Index">Netial</a>
-            <div class="container navbar">
-                <div class="navbar-buttons-center">
-                    <div class="nav-item" @(Url.Action().Contains("MyPage") ? "selected" : "")>
-                        <a class="nav-link text-dark" asp-area="" asp-page="/MyPage">Моя страница</a>
-                    </div>
-                    <div class="nav-item" @(Url.Action() == "/" ? "selected" : "")>
-                        <a class="nav-link text-dark" asp-area="" asp-page="/Index">Новости</a>
-                    </div>
-                    <div class="nav-item" @(Url.Action().Contains("Messenger") ? "selected" : "")>
-                        <a class="nav-link text-dark" asp-area="" asp-page="/Messenger">Сообщения</a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <component type="typeof(Header)" render-mode="WebAssemblyPrerendered" />
 
     @RenderBody()
 

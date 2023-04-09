@@ -1,0 +1,101 @@
+@page "/account/register"
+@using Netial.Helpers
+
+@inject NavigationManager _navManager
+
+<PageTitle>Регистрация - Netial</PageTitle>
+
+<div class="flex-row flex-x-center align-items-center">
+    <div class="text-center register-container">
+            
+        <form method="post" class="stack flex-x-stretch flex-column">
+            <p class="form-floating">
+                <input type="text" @bind-value="@Lastname" required="required" id="lastname" name="lastname" class="input form-control" placeholder=" "/>
+                <label for="lastname">Фамилия</label>
+            </p>
+            <p class="form-floating">
+                <input type="text" @bind-value="@Firstname" required="required" id="firstname" name="firstname" class="input form-control" placeholder=" "/>
+                <label for="firstname">Имя</label>
+            </p>
+            <p class="form-floating">
+                <input type="date" @bind-value="@BirthDate" required="required" id="birthdate" name="birthdate" class="input form-control" placeholder=" "/>
+                <label for="birthdate">Дата рождения</label>
+            </p>
+            <p class="form-floating">
+                <input type="email" @bind-value="@Email" required="required" id="email" name="email" class="input form-control" placeholder=" "/>
+                <label for="email">Почта</label>
+            </p>
+            <p class="form-floating">
+                <input type="password" @bind-value="@Password" id="password" name="password" required="required" minlength="8" class="input form-control" placeholder=" "/>
+                <label for="password">Пароль</label>
+            </p>
+            <p class="form-floating">
+                <input type="password" @bind-value="@PasswordConfirm" id="password2" name="password2" required="required" minlength="8" class="input form-control" placeholder=" "/>
+                <label for="password2">Подтверждение пароля</label>
+            </p>
+            <Button Type="submit" OnClick="Click" Text="Зарегистрироваться" Selected="true"/>
+            <p class="d-block" danger>@Message</p>
+            <p>Есть аккаунт? Так <a href="/account/login">войдите</a> в него</p>
+        </form>
+    </div>
+</div>
+
+@code {
+    private string Firstname { get; set; }
+    private string Lastname { get; set; }
+    private DateTime BirthDate { get; set; } = DateTime.Today;
+    private string Email { get; set; }
+    private string Password { get; set; }
+    private string PasswordConfirm { get; set; }
+    
+    private string Message { get; set; }
+    private string ReturnUrl { get; set; }
+    
+    protected override async void OnInitialized() {
+        var query = UriQuery.QueryDictionary(new Uri(_navManager.Uri).Query);
+        if (query.ContainsKey("returnUrl"))
+            ReturnUrl = query["returnUrl"];
+        if (query.ContainsKey("invalid")) {
+            if (query["invalid"] is null)
+                Message = "Пользователь с этим адресом электронной почты уже существует";
+            else {
+                Message = Uri.UnescapeDataString(query["invalid"]);
+            }
+        }
+
+        base.OnInitialized();
+    }
+
+    private void Click() {
+        SubmitForm();
+    }
+    
+    private void SubmitForm() {
+        switch (
+            string.IsNullOrEmpty(Email),
+            string.IsNullOrEmpty(Password),
+            string.IsNullOrEmpty(PasswordConfirm),
+            string.IsNullOrEmpty(Firstname),
+            string.IsNullOrEmpty(Lastname)
+        ) {
+            case (true, true, true, true, true):
+                Message = "Поля пусты";
+                return;
+            case (_, _, _, _, true):
+                Message = "Введите фамилию";
+                return;
+            case (_, _, _, true, _):
+                Message = "Введите имя";
+                return;
+            case (true, _, _, _, _):
+                Message = "Введите электронную почту";
+                return;
+            case (false, true, true, _, _):
+                Message = "Введите пароль";
+                return;
+            default:
+                Message = string.Empty;
+                break;
+        }
+    }
+}
