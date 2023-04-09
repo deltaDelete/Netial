@@ -1,10 +1,10 @@
 @using Microsoft.AspNetCore.Mvc.Razor
-<div class="btn" selected="@Selected">
+<div class="btn p-0" selected="@Selected">
     @if (IsLink) {
-        <a class="nav-link text-dark" @onclick="OnClick">@Text</a>
+        <a class="nav-link text-dark" @onclick="OnClick" href="@Href"><div>@Text</div></a>
     }
     else {
-        <button type="@(Type is null ? "submit" : Type)" class="nav-link text-dark" @onclick="OnClick">@Text</button>
+        <button type="@(Type is null ? "submit" : Type)" class="nav-link text-dark" @onclick="OnClick"><div>@Text</div></button>
     }
 </div>
 
@@ -19,4 +19,6 @@
     public string? Type { get; set; }
     [Parameter]
     public bool IsLink { get; set; }
+    [Parameter]
+    public string Href { get; set; }
 }
