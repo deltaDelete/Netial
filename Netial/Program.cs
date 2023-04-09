@@ -1,86 +1,165 @@
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Netial.Data;
 using Netial.Database;
 using Netial.Helpers;
+using Netial.Models;
 
-var builder = WebApplication.CreateBuilder(args);
+internal class Program {
+    private static readonly string[] REGISTER_FIELDS = { "lastname", "firstname", "birthdate", "email", "password", "password2" };
+    public static void Main(string[] args) {
+        var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddDbContext<ApplicationContext>();
-builder.Services.AddOptions();
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => options.LoginPath = "/login");
+        // Add services to the container.
+        ConfigureServices(builder.Services);
 
-var app = builder.Build();
+        var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment()) {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+        ConfigureApplication(app);
+
+        ConfigureMinimalApi(app);
+
+        app.Run();
+
+
+    }
+
+    private static void ConfigureMinimalApi(WebApplication app) {
+        app.MapGet("/testuser", (ApplicationContext db) => { return db.Users.ToList(); });
+        app.MapGet("/security/hash", GenHash);
+        app.MapPost("/account/login", Login);
+        app.MapPost("/account/register", Register);
+    }
+
+    private static void ConfigureApplication(WebApplication app) {
+        // Configure the HTTP request pipeline.
+        if (!app.Environment.IsDevelopment()) {
+            app.UseExceptionHandler("/Error");
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
+        }
+
+        app.UseHttpsRedirection();
+
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+        
+        app.MapBlazorHub();
+        app.MapFallbackToPage("/_Host");
+    }
+
+    static void ConfigureServices(IServiceCollection services) {
+        services.AddRazorPages();
+        services.AddServerSideBlazor();
+        services.AddSingleton<WeatherForecastService>();
+        services.AddDbContext<ApplicationContext>();
+        services.AddOptions();
+        
+        services.AddAuthorization();
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options => options.LoginPath = "/login");
+    }
+    
+    private static async Task<IResult> Register(string? returnUrl, HttpContext context, ApplicationContext db) {
+        var form = context.Request.Form;
+
+        List<string> missingKeys = new List<string>();
+        List<string> emptyKeys = new List<string>();
+        foreach (string s in REGISTER_FIELDS) {
+            if (!form.ContainsKey(s)) {
+                missingKeys.Add(s);
+                break;
+            }
+
+            if (string.IsNullOrEmpty(form[s])) {
+                emptyKeys.Add(s);
+            }
+        }
+
+        if (missingKeys.Any()) {
+            return Results.BadRequest(missingKeys);
+        }
+        if (emptyKeys.Any()) {
+            return Results.BadRequest(missingKeys);
+        }
+
+        string lastname = form["lastname"];
+        string firstname = form["firstname"];
+        DateTime birthDate = DateTime.Parse(form["birthdate"]);
+        string email = form["email"];
+        string emailNormalized = email.ToUpper();
+        string password = form["password"];
+        string password2 = form["password2"];
+        if (password != password2) {
+            return Results.Redirect($"/account/register?invalid={Uri.EscapeDataString("Пароли не совпадают")}");
+        }
+
+        if (db.Users.Any(u => u.EmailNormalized == emailNormalized)) {
+            return Results.Redirect("/account/register?invalid");
+        }
+
+        string passwordSalt = Guid.NewGuid().ToString().Split('-')[0];
+        string passwordHash = Cryptography.Sha256Hash(password + passwordSalt);
+
+        var user = new User() {
+            Email = email,
+            EmailNormalized = emailNormalized,
+            FirstName = firstname,
+            LastName = lastname,
+            PasswordHash = passwordHash,
+            PasswordSalt = passwordSalt,
+            Rating = 0,
+            BirthDate = birthDate
+        };
+
+        await db.Users.AddAsync(user);
+        await db.SaveChangesAsync();
+
+        var returnRoute = returnUrl is null ? "/account/login" : $"/account/login?returnUrl={returnUrl}";
+        return Results.Redirect(returnRoute);
+    }
+
+    private static async Task<IResult> Login(string? returnUrl, HttpContext context, ApplicationContext db) {
+        var form = context.Request.Form;
+        if (!form.ContainsKey("email") || !form.ContainsKey("password")) {
+            return Results.Redirect("/login?invalid");
+        }
+
+        string email = form["email"];
+        string password = form["password"];
+
+        if (string.IsNullOrWhiteSpace(password)) {
+            return Results.Redirect("/login?invalid");
+        }
+
+        var emailNormalized = email.ToUpper();
+        var query = db.Users.AsEnumerable()
+            .Where(u => u.EmailNormalized == emailNormalized && u.PasswordHash == Cryptography.Sha256Hash(password + u.PasswordSalt));
+
+        if (!query.Any()) {
+            return Results.Redirect("/account/login?invalid");
+        }
+
+        var claims = new List<Claim> { new Claim(ClaimTypes.Name, query.ElementAt(0).FirstName), new Claim(ClaimTypes.Email, query.ElementAt(0).Email) };
+        // создаем объект ClaimsIdentity
+        ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+        // установка аутентификационных куки
+        await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        return Results.Redirect(returnUrl ?? "/");
+    }
+
+    private static IResult GenHash(string passwd, string salt) {
+        if (string.IsNullOrEmpty(passwd) || string.IsNullOrEmpty(salt)) {
+            return Results.BadRequest("Отсутствует параметр");
+        }
+
+        return Results.Text(Cryptography.Sha256Hash(passwd + salt));
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapGet("/testuser", (ApplicationContext db) => {
-    return db.Users.ToList();
-});
-app.MapGet("/hash/{passwd}/{salt}", (HttpRequest request, [FromRoute] string passwd, [FromRoute] string salt) => {
-    if (string.IsNullOrEmpty(passwd) || string.IsNullOrEmpty(salt)) {
-        return "400";
-    }
-    return Netial.Helpers.Cryptography.Sha256Hash(passwd+salt); 
-});
-app.MapPost("/login", async (string? returnUrl, HttpContext context, ApplicationContext db) => {
-
-    var form = context.Request.Form;
-    if (!form.ContainsKey("email") || !form.ContainsKey("password")) {
-        return Results.Redirect("/login?invalid");
-    }
-
-    string email = form["email"];
-    string password = form["password"];
-
-    if (string.IsNullOrWhiteSpace(password)) {
-        return Results.Redirect("/login?invalid");
-    }
-    
-    var emailNormalized = email.ToUpper();
-    var query = db.Users
-        .AsEnumerable()
-        .Where(u => u.EmailNormalized == emailNormalized
-                    && u.PasswordHash == Cryptography.Sha256Hash(password+u.PasswordSalt));
-
-    if (!query.Any()) {
-        return Results.Redirect("/login?invalid");
-    }
-    
-    var claims = new List<Claim> {
-        new Claim(ClaimTypes.Name, query.ElementAt(0).FirstName),
-        new Claim(ClaimTypes.Email, query.ElementAt(0).Email)
-    };
-    // создаем объект ClaimsIdentity
-    ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
-    // установка аутентификационных куки
-    await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-    return Results.Redirect(returnUrl ?? "/");
-});
-
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
-
-app.Run();
