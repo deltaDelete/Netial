@@ -238,6 +238,7 @@ body > div.container {
     border-radius: var(--netial-tetriary-radius);
     padding: 0.125rem 0.5rem;
     height: 2rem;
+    width: 100%;
     user-select: text;
 }
 
