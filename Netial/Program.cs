@@ -59,6 +59,7 @@ internal class Program {
         services.AddRazorPages();
         services.AddServerSideBlazor();
         services.AddHttpContextAccessor();
+        services.AddSingleton<EmailService>();
         services.AddDbContext<ApplicationContext>();
         services.AddOptions();
         
