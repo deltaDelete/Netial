@@ -4,6 +4,7 @@
 
 :root {
     --netial-body-bg: #333333;
+    --netial-body-bg-top: #393939;
     --netial-container-bg: #444444;
     --netial-text-color: white;
     --netial-primary-color: #f9f9f9;
@@ -36,6 +37,22 @@ html {
 
 body {
     margin-bottom: 60px;
+}
+
+body::-webkit-scrollbar {
+    background-color: var(--netial-body-bg-top);
+    width: 1rem;
+}
+
+body::-webkit-scrollbar-track {
+    margin-top: 4.5rem;
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: var(--netial-primary-color);
+    border-radius: 1rem;
+    border-color: var(--netial-body-bg-top);
+    border-style: solid;
 }
 
 h1:focus {
@@ -163,14 +180,17 @@ a.navbar-brand {
 }
 
 nav.navbar {
-    background: #393939;
+    background: var(--netial-body-bg-top);
     padding-inline: 1rem;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 2fr 1fr;
     display: inline-grid;
     width: 100%;
 }
 
 @media(max-width: 768px) {
+    body::-webkit-scrollbar-track {
+        margin-top: 8.5rem;
+    }
     .page {
         padding-top: 10rem !important;
     }

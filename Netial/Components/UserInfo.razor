@@ -6,7 +6,7 @@
 @inject NavigationManager _navManager
 @inject AuthenticationStateProvider _auth
 
-<div class="@(Reverse ? "flex-row-reverse" : "flex-row") flex-y-center" style="@Style">
+<div @onclick="OnClick" class="@(Reverse ? "flex-row-reverse" : "flex-row") flex-y-center" style="@Style">
     <div class="flex-column flex-y-center @(Reverse ? "flex-x-left" : "flex-x-right")">
         <p>@Lastname @Name</p>
         @if (ShowEmail) {
@@ -29,6 +29,8 @@
 
     [Parameter]
     public bool ShowEmail { get; set; } = false;
+    [Parameter]
+    public EventCallback OnClick { get; set; }
 
     private string Avatar {
         get { return _avatar; }

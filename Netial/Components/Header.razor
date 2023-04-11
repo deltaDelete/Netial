@@ -15,7 +15,11 @@
         <div style="justify-self: right;">
             <AuthorizeView>
                 <Authorized>
-                    <UserInfo Style="gap: 1rem;"/>
+                    <form method="post" action="/account/logout">
+                        <button type="submit" style="color: unset; background-color: unset; border-color: unset; border-style: unset;">
+                            <UserInfo Style="gap: 1rem;"/>
+                        </button>
+                    </form>
                 </Authorized>
                 <NotAuthorized>
                     <Button IsLink="true" Href="/account/login" Text="Войти" Selected="false"/>

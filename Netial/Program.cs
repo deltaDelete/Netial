@@ -30,6 +30,7 @@ internal class Program {
         app.MapGet("/testuser", (ApplicationContext db) => { return db.Users.ToList(); });
         app.MapGet("/security/hash", GenHash);
         app.MapPost("/account/login", Login);
+        app.MapPost("/account/logout", Logout);
         app.MapPost("/account/register", Register);
         app.MapGet("/images/users/{id}", GetUserImage);
     }
@@ -163,6 +164,11 @@ internal class Program {
         // установка аутентификационных куки
         await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
         return Results.Redirect(returnUrl ?? "/");
+    }
+
+    private static async Task<IResult> Logout(HttpContext context) {
+        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return Results.LocalRedirect("/");
     }
 
     private static IResult GenHash(string passwd, string salt) {
