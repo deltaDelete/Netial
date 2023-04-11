@@ -2,13 +2,25 @@
 
 <header id="header">
     <nav class="navbar box-shadow mb-3">
-        <a class="navbar-brand" asp-area="" asp-page="/Index">Netial</a>
+        <div style="justify-self: left;">
+            <a class="navbar-brand" href="/">Netial</a>
+        </div>
         <div class="container navbar">
             <div class="navbar-buttons-center">
                 <Button IsLink="true" Href="/mypage" Selected="@CheckUri("/mypage")" Text="Моя страница"/>
                 <Button IsLink="true" Href="/" Selected="@IsIndex()" Text="Новости"/>
                 <Button IsLink="true" Href="/messenger" Selected="@CheckUri("/messenger")" Text="Сообщения"/>
             </div>
+        </div>
+        <div style="justify-self: right;">
+            <AuthorizeView>
+                <Authorized>
+                    <UserInfo Style="gap: 1rem;"/>
+                </Authorized>
+                <NotAuthorized>
+                    <Button IsLink="true" Href="/account/login" Text="Войти" Selected="false"/>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     </nav>
 </header>
