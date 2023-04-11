@@ -9,12 +9,14 @@ public class ApplicationContext : DbContext {
     private string _connectionString = string.Empty;
 
     public DbSet<User> Users { get; set; } = null;
+    public DbSet<Group> Groups { get; set; } = null;
 
     public ApplicationContext(IConfiguration configuration, ILogger<ApplicationContext> logger) {
         _configuration = configuration;
         _logger = logger;
         _connectionString = _configuration.GetConnectionString("DefaultConnection");
         Database.EnsureCreated();
+        _logger.LogInformation(Database.GenerateCreateScript());
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {

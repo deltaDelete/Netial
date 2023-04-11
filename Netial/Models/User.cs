@@ -30,4 +30,28 @@ public class User {
     public string PasswordHash { get; set; }
     [Column("password_salt")]
     public string PasswordSalt { get; set; }
+    
+    [Column("is_email_confirmed")]
+    public bool IsEmailConfirmed { get; set; }
+    
+    [ForeignKey("group")]
+    public Group Group { get; set; }
+}
+
+[Flags]
+public enum GroupPermissions {
+    BanUser,
+    BanPost,
+    BanMessage,
+    RemoveUser
+}
+
+public class Group {
+    [Key]
+    [Column("group_id")]
+    public Guid Id { get; set; } = Guid.NewGuid();
+    [Column("permissions")]
+    public GroupPermissions Permissions { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 }
