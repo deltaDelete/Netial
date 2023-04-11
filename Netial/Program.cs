@@ -1,9 +1,8 @@
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using Netial.Data;
 using Netial.Database;
 using Netial.Helpers;
 using Netial.Models;
@@ -32,6 +31,7 @@ internal class Program {
         app.MapGet("/security/hash", GenHash);
         app.MapPost("/account/login", Login);
         app.MapPost("/account/register", Register);
+        app.MapGet("/images/users/{id}", GetUserImage);
     }
 
     private static void ConfigureApplication(WebApplication app) {
@@ -58,7 +58,7 @@ internal class Program {
     static void ConfigureServices(IServiceCollection services) {
         services.AddRazorPages();
         services.AddServerSideBlazor();
-        services.AddSingleton<WeatherForecastService>();
+        services.AddHttpContextAccessor();
         services.AddDbContext<ApplicationContext>();
         services.AddOptions();
         
@@ -147,7 +147,16 @@ internal class Program {
             return Results.Redirect("/account/login?invalid");
         }
 
-        var claims = new List<Claim> { new Claim(ClaimTypes.Name, query.ElementAt(0).FirstName), new Claim(ClaimTypes.Email, query.ElementAt(0).Email) };
+        var user = query.ElementAt(0);
+        
+        // заполняем Claim'ы чтобы по ним получать информацию о текущем пользователе
+        var claims = new List<Claim> {
+            new Claim(ClaimTypes.Name, user.FirstName),
+            new Claim(ClaimTypes.Surname, user.LastName),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim("BirthDate", user.BirthDate.ToString(DateTimeFormatInfo.InvariantInfo)),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+        };
         // создаем объект ClaimsIdentity
         ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
         // установка аутентификационных куки
@@ -161,5 +170,13 @@ internal class Program {
         }
 
         return Results.Text(Cryptography.Sha256Hash(passwd + salt));
+    }
+    
+    private static IResult GetUserImage(string id, IWebHostEnvironment env) {
+        var fileinfo = env.WebRootFileProvider.GetFileInfo($"images/users/{id}.jpg");
+        if (!fileinfo.Exists) {
+            return Results.NotFound(id);
+        }
+        return Results.File(fileinfo.CreateReadStream());
     }
 }
