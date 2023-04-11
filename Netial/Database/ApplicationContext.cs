@@ -21,5 +21,6 @@ public class ApplicationContext : DbContext {
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         optionsBuilder.UseMySql(_connectionString, new MySqlServerVersion(new Version(8,0,32)));
+        optionsBuilder.UseSnakeCaseNamingConvention();
     }
 }
