@@ -4,6 +4,7 @@
 
 :root {
     --netial-body-bg: #333333;
+    --netial-body-bg-top: #393939;
     --netial-container-bg: #444444;
     --netial-text-color: white;
     --netial-primary-color: #f9f9f9;
@@ -38,15 +39,20 @@ body {
     margin-bottom: 60px;
 }
 
-a.navbar-brand {
-    position: fixed;
-    margin-left: 2rem;
+body::-webkit-scrollbar {
+    background-color: var(--netial-body-bg-top);
+    width: 1rem;
 }
 
-#header {
-    position: fixed;
-    width: 100%;
-    height: 4rem;
+body::-webkit-scrollbar-track {
+    margin-top: 4.5rem;
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: var(--netial-primary-color);
+    border-radius: 1rem;
+    border-color: var(--netial-body-bg-top);
+    border-style: solid;
 }
 
 h1:focus {
@@ -112,12 +118,6 @@ a, .btn-link {
     /* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
-a.navbar-brand {
-    white-space: normal;
-    text-align: center;
-    word-break: break-all;
-}
-
 a {
     color: #0077cc;
 }
@@ -162,9 +162,17 @@ button.accept-policy {
     text-align: center;
 }
 
-/*.nav-item:not(:first-child) {*/
-/*    margin-left: 1rem; */
-/*}*/
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    justify-self: left;
+}
+
+#header {
+    position: fixed;
+    width: 100%;
+    height: 4rem;
+}
 
 .nav-item:hover,
 .nav-item[selected] {
@@ -172,7 +180,44 @@ button.accept-policy {
 }
 
 nav.navbar {
-    background: #393939;
+    background: var(--netial-body-bg-top);
+    padding-inline: 1rem;
+    grid-template-columns: 1fr 2fr 1fr;
+    display: inline-grid;
+    width: 100%;
+}
+
+@media(max-width: 768px) {
+    body::-webkit-scrollbar-track {
+        margin-top: 8.5rem;
+    }
+    .page {
+        padding-top: 10rem !important;
+    }
+    
+    nav.navbar {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        justify-content: center;
+    }
+    nav > div:first-child,
+    nav > div:last-child {
+        grid-row: 1;
+        grid-column: 1;
+        margin-inline: 0.75rem;
+    }
+    
+    nav > div:nth-child(2) {
+        /*scale: 0.75;*/
+    }
+    
+    .navbar-buttons-center {
+        margin: 0;
+    }
+    
+    .navbar-buttons-center > .btn {
+        width: 30vw;
+    }
 }
 
 div.navbar-buttons-center {
@@ -185,6 +230,13 @@ div.navbar-buttons-center {
     justify-content: center;
     align-items: flex-start;
     gap: 1rem;
+    
+    flex-grow: 1;
+}
+
+div.navbar-buttons-center > .btn {
+    flex-basis: 0;
+    flex-grow: 1;
 }
 
 div.container.navbar {
@@ -213,9 +265,19 @@ body > div.container {
     flex-direction: row;
 }
 
+.flex-row-reverse {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
 .flex-column {
     display: flex;
     flex-direction: column;
+}
+
+.flex-column-reverse {
+    display: flex;
+    flex-direction: column-reverse;
 }
 
 .flex-x-center {
@@ -229,6 +291,14 @@ body > div.container {
 
 .flex-x-stretch {
     align-items: stretch;
+}
+
+.flex-x-left {
+    align-items: flex-start;
+}
+
+.flex-x-right {
+    align-items: flex-end;
 }
 
 .input {
@@ -252,4 +322,12 @@ body > div.container {
 
 [info] {
     color: var(--bs-info);
+}
+
+[bold] {
+    font-weight: 600;
+}
+
+[thin] {
+    font-weight: 300;
 }

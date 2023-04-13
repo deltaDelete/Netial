@@ -1,0 +1,50 @@
+@using Netial.Helpers
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject NavigationManager _navManager
+@inject AuthenticationStateProvider _auth
+
+<div @onclick="OnClick" class="@(Reverse ? "flex-row-reverse" : "flex-row") flex-y-center" style="@Style">
+    <div class="flex-column flex-y-center @(Reverse ? "flex-x-left" : "flex-x-right")">
+        <p>@Lastname @Name</p>
+        @if (ShowEmail) {
+            <p>@Email</p>
+        }
+    </div>
+    <img src="@Avatar" alt="Аватар"/>
+</div>
+
+@code {
+    private string Name { get; set; }
+    private string Lastname { get; set; }
+    private string Email { get; set; }
+    private string _avatar = string.Empty;
+
+    [Parameter]
+    public string Style { get; set; }
+    [Parameter]
+    public bool Reverse { get; set; } = false;
+
+    [Parameter]
+    public bool ShowEmail { get; set; } = false;
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private string Avatar {
+        get { return _avatar; }
+        set { _avatar = $"/images/users/{value}"; }
+    }
+
+    protected override async void OnInitialized() {
+        var state = await _auth.GetAuthenticationStateAsync();
+        var claims = state.User.Claims.ToDictionary(x => x.Type);
+        Name = state.User.Identity.Name;
+        Lastname = claims[ClaimTypes.Surname].Value;
+        Email = claims[ClaimTypes.Email].Value;
+        Avatar = claims[ClaimTypes.NameIdentifier].Value;
+        
+        base.OnInitialized();
+    }
+}
