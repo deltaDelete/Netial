@@ -9,26 +9,26 @@ using Netial.Database.Models;
 using Netial.Helpers;
 using Netial.Models;
 
-internal class Program {
+internal static class Program {
     private static readonly string[] REGISTER_FIELDS = { "lastname", "firstname", "birthdate", "email", "password", "password2" };
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        ConfigureServices(builder.Services);
+        builder.Services.ConfigureServices();
 
         var app = builder.Build();
 
-        ConfigureApplication(app);
+        app.ConfigureApplication();
 
-        ConfigureMinimalApi(app);
+        app.ConfigureMinimalApi();
 
         app.Run();
 
 
     }
 
-    private static void ConfigureMinimalApi(WebApplication app) {
+    private static void ConfigureMinimalApi(this WebApplication app) {
         app.MapGet("/testuser", (ApplicationContext db) => { return db.Users.ToList(); });
         app.MapGet("/security/hash", GenHash);
         app.MapPost("/account/login", Login);
@@ -37,7 +37,7 @@ internal class Program {
         app.MapGet("/images/users/{id}", GetUserImage);
     }
 
-    private static void ConfigureApplication(WebApplication app) {
+    private static void ConfigureApplication(this WebApplication app) {
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment()) {
             app.UseExceptionHandler("/Error");
@@ -58,7 +58,7 @@ internal class Program {
         app.MapFallbackToPage("/_Host");
     }
 
-    static void ConfigureServices(IServiceCollection services) {
+    private static void ConfigureServices(this IServiceCollection services) {
         services.AddRazorPages();
         services.AddServerSideBlazor();
         services.AddHttpContextAccessor();
