@@ -1,0 +1,38 @@
+@using Netial.Helpers
+@using System.Security.Claims
+
+@attribute [Authorize]
+
+@inject NavigationManager _navManager
+@inject AuthenticationStateProvider _auth
+
+<div @onclick="OnClick" class="@(Reverse ? "flex-row-reverse" : "flex-row") flex-y-center @Class" style="@Style">
+    <div class="flex-column flex-y-center @(Reverse ? "flex-x-left" : "flex-x-right")">
+        <p>@User.LastName @User.FirstName</p>
+        @if (ShowEmail) {
+            <p>@User.Email</p>
+        }
+    </div>
+    <img src="@Avatar" alt="Аватар"/>
+</div>
+
+@code {
+
+    [Parameter]
+    public string? Style { get; set; }
+    [Parameter]
+    public string? Class { get; set; }
+    [Parameter]
+    public bool Reverse { get; set; } = false;
+
+    [Parameter]
+    public bool ShowEmail { get; set; } = false;
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+    [Parameter]
+    public User User { get; set; }
+
+    private string Avatar {
+        get { return $"/images/users/{User.Id}"; }
+    }
+}
