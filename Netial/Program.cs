@@ -56,6 +56,11 @@ internal static class Program {
         
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
+
+        #if DEBUG
+        app.UseSwagger();
+        app.UseSwaggerUI(options => { options.RoutePrefix = "/swagger"; });
+        #endif
     }
 
     private static void ConfigureServices(this IServiceCollection services) {
@@ -70,6 +75,11 @@ internal static class Program {
         services.AddAuthorization();
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options => options.LoginPath = "/login");
+
+        #if DEBUG
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+        #endif
     }
     
     private static async Task<IResult> Register(string? returnUrl, HttpContext context, ApplicationContext db) {
