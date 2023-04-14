@@ -7,3 +7,7 @@
     background: var(--netial-primary-color);
     color: var(--netial-body-bg);
 }
+.netial-icon-button:hover {
+    background: var(--netial-primary-inactive-color);
+    color: var(--netial-body-bg);
+}

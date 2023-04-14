@@ -1,5 +1,5 @@
 .btn {
-    background: #BBBBBB;
+    background: var(--netial-primary-inactive-color);
     border-style: none;
     border-radius: .6rem;
     height: 2.4rem;

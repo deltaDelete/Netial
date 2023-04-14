@@ -8,13 +8,14 @@
     --netial-container-bg: #444444;
     --netial-text-color: white;
     --netial-primary-color: #f9f9f9;
+    --netial-primary-inactive-color: #bbbbbb;
     
     --netial-primary-radius: 1.5rem;
     --netial-secondary-radius: 1rem;
     --netial-trinary-radius: 0.75rem;
     --netial-tetriary-radius: 0.5rem;
     
-    --bs-font-sans-serif: Montserrat, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --bs-font-sans-serif: Montserrat, emoji, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --bs-body-bg: var(--netial-body-bg);
     --bs-body-color: var(--netial-text-color);
     
@@ -154,7 +155,7 @@ button.accept-policy {
 }
 
 .nav-item {
-    background: #BBBBBB;
+    background: var(--netial-primary-inactive-color);
     border-radius: .6rem;
     height: 2.4rem;
     display: inline-block;
@@ -227,7 +228,8 @@ nav.navbar {
     .netial-post > div > div.flex-row.flex-y-center.gap-2 {
         flex-wrap: wrap;
         flex-direction: column-reverse !important;
-        align-items: end;
+        align-items: flex-end;
+        align-content: flex-end;
     }
 }
 
