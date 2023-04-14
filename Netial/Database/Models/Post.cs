@@ -8,6 +8,7 @@ public class Post {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
     public string? Text { get; set; }
+    public DateTime CreationDate { get; set; } = DateTime.Now;
 
     public int Upvotes {
         get => UpvotedBy.Count;

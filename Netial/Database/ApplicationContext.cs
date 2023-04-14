@@ -95,6 +95,23 @@ public class ApplicationContext : DbContext {
 
         #endregion
 
+        #region defaults
+
+        modelBuilder
+            .Entity<Post>()
+            .Property(p => p.CreationDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        modelBuilder
+            .Entity<Comment>()
+            .Property(c => c.CreationDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        modelBuilder
+            .Entity<User>()
+            .Property(u => u.CreationDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+        #endregion
+        
         base.OnModelCreating(modelBuilder);
     }
 }
