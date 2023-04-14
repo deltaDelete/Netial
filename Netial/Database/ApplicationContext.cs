@@ -14,6 +14,8 @@ public class ApplicationContext : DbContext {
     public DbSet<Attachment> Attachments { get; set; } = null!;
     public DbSet<Comment> Comments { get; set; } = null!;
     public DbSet<Size> Sizes { get; set; } = null!;
+    public DbSet<Chat> Chats { get; set; } = null!;
+    public DbSet<Message> Messages { get; set; } = null!;
 
     public ApplicationContext(IConfiguration configuration, ILogger<ApplicationContext> logger) {
         _configuration = configuration;
@@ -47,6 +49,21 @@ public class ApplicationContext : DbContext {
             .Entity<Post>()
             .HasMany(p => p.Comments)
             .WithOne(c => c.Post);
+        // Сообщение только в одном чате
+        modelBuilder
+            .Entity<Chat>()
+            .HasMany(c => c.Messages)
+            .WithOne(m => m.Chat);
+        // У чата только один владелец, у владельца несколько чатов
+        modelBuilder
+            .Entity<Chat>()
+            .HasOne(c => c.Owner)
+            .WithMany(u => u.OwnedChats);
+        // У сообщения только один автор, у автора несколько сообщений
+        modelBuilder
+            .Entity<Message>()
+            .HasOne(m => m.Author)
+            .WithMany(u => u.Messages);
 
         #endregion
 
@@ -92,6 +109,12 @@ public class ApplicationContext : DbContext {
             .HasMany(p => p.Attachments)
             .WithMany(a => a.Posts)
             .UsingEntity("post_attachments");
+        // В чате несколько членов, у каждого члена несколько чатов
+        modelBuilder
+            .Entity<Chat>()
+            .HasMany(c => c.Members)
+            .WithMany(u => u.Chats)
+            .UsingEntity("chat_members");
 
         #endregion
 
@@ -109,6 +132,15 @@ public class ApplicationContext : DbContext {
             .Entity<User>()
             .Property(u => u.CreationDate)
             .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        modelBuilder
+            .Entity<Chat>()
+            .Property(c => c.CreationDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        modelBuilder
+            .Entity<Message>()
+            .Property(c => c.CreationDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+        
 
         #endregion
         

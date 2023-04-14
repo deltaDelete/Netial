@@ -30,4 +30,7 @@ public class User {
     public virtual ICollection<Post> Posts { get; set; }
     public virtual ICollection<Comment> LikedComments { get; set; }
     public virtual ICollection<Comment> Comments { get; set; }
+    public virtual ICollection<Message> Messages { get; set; }
+    public virtual ICollection<Chat> Chats { get; set; }
+    public virtual ICollection<Chat> OwnedChats { get; set; }
 }
