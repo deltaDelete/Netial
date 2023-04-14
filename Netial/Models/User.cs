@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -24,4 +25,11 @@ public class User {
     public bool IsEmailConfirmed { get; set; }
     
     public ICollection<Group> Groups { get; set; }
+
+    public ICollection<Post> UpvotedPosts { get; set; }
+    public ICollection<Post> DownvotedPosts { get; set; }
+    public ICollection<Post> ViewedPosts { get; set; }
+    public ICollection<Post> Posts { get; set; }
+    public ICollection<Comment> LikedComments { get; set; }
+    public ICollection<Comment> Comments { get; set; }
 }
