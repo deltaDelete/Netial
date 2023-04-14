@@ -1,4 +1,4 @@
-@inject NavigationManager _navManager
+@inject NavigationManager NavManager
 
 <header id="header">
     <nav class="navbar box-shadow mb-3">
@@ -40,10 +40,10 @@
 @code {
 
     private bool CheckUri(string str) {
-        return _navManager.Uri.Contains(str);
+        return NavManager.Uri.Contains(str);
     }
 
     private bool IsIndex() {
-        return _navManager.Uri == _navManager.BaseUri;
+        return NavManager.Uri == NavManager.BaseUri;
     }
 }
