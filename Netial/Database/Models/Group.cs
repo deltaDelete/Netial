@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Netial.Models;
+namespace Netial.Database.Models;
 
 public class Group {
     [Key]

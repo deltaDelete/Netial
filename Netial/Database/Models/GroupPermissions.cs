@@ -1,4 +1,4 @@
-namespace Netial.Models;
+namespace Netial.Database.Models;
 
 [Flags]
 public enum GroupPermissions {

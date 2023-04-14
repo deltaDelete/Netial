@@ -1,8 +1,6 @@
-using System.Collections;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Netial.Models;
+namespace Netial.Database.Models;
 
 public class User {
     [Key]

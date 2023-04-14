@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MudBlazor.Services;
 using Netial.Database;
+using Netial.Database.Models;
 using Netial.Helpers;
 using Netial.Models;
 

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Netial.Models;
+using Netial.Database.Models;
 
 namespace Netial.Database;
 

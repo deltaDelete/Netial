@@ -1,7 +1,6 @@
-using System.Collections;
 using System.ComponentModel.DataAnnotations;
 
-namespace Netial.Models;
+namespace Netial.Database.Models;
 
 public class Attachment {
     [Key]
