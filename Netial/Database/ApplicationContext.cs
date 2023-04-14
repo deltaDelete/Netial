@@ -24,6 +24,7 @@ public class ApplicationContext : DbContext {
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+        optionsBuilder.UseLazyLoadingProxies();
         optionsBuilder.UseMySql(_connectionString, new MySqlServerVersion(new Version(8,0,32)));
         optionsBuilder.UseSnakeCaseNamingConvention();
     }
@@ -56,25 +57,29 @@ public class ApplicationContext : DbContext {
         modelBuilder
             .Entity<User>()
             .HasMany(u => u.LikedComments)
-            .WithMany(c => c.LikedBy);
+            .WithMany(c => c.LikedBy)
+            .UsingEntity("comment_likes");
         // Пользователь может просмотреть несколько постов
         // Посты могут быть просмотрены несколькими пользователями
         modelBuilder
             .Entity<User>()
             .HasMany(u => u.ViewedPosts)
-            .WithMany(p => p.ViewedBy);
+            .WithMany(p => p.ViewedBy)
+            .UsingEntity("post_views");
         // Пользователь может апвоутнуть несколько постов
         // Посты могут быть апвоутнуты несколькими пользователями
         modelBuilder
             .Entity<User>()
             .HasMany(u => u.UpvotedPosts)
-            .WithMany(p => p.UpvotedBy);
+            .WithMany(p => p.UpvotedBy)
+            .UsingEntity("post_upvotes");
         // Пользователь может даунвоутнуть несколько постов
         // Посты могут быть даунвоутнуты несколькими пользователями
         modelBuilder
             .Entity<User>()
             .HasMany(u => u.DownvotedPosts)
-            .WithMany(p => p.DownvotedBy);
+            .WithMany(p => p.DownvotedBy)
+            .UsingEntity("post_downvotes");
         // У пользователя несколько групп у группы несколько пользователей
         modelBuilder
             .Entity<User>()
@@ -85,7 +90,8 @@ public class ApplicationContext : DbContext {
         modelBuilder
             .Entity<Post>()
             .HasMany(p => p.Attachments)
-            .WithMany(a => a.Posts);
+            .WithMany(a => a.Posts)
+            .UsingEntity("post_attachments");
 
         #endregion
 

@@ -22,12 +22,12 @@ public class User {
     
     public bool IsEmailConfirmed { get; set; }
     
-    public ICollection<Group> Groups { get; set; }
-
-    public ICollection<Post> UpvotedPosts { get; set; }
-    public ICollection<Post> DownvotedPosts { get; set; }
-    public ICollection<Post> ViewedPosts { get; set; }
-    public ICollection<Post> Posts { get; set; }
-    public ICollection<Comment> LikedComments { get; set; }
-    public ICollection<Comment> Comments { get; set; }
+    // Навигационные свойства
+    public virtual ICollection<Group> Groups { get; set; }
+    public virtual ICollection<Post> UpvotedPosts { get; set; }
+    public virtual ICollection<Post> DownvotedPosts { get; set; }
+    public virtual ICollection<Post> ViewedPosts { get; set; }
+    public virtual ICollection<Post> Posts { get; set; }
+    public virtual ICollection<Comment> LikedComments { get; set; }
+    public virtual ICollection<Comment> Comments { get; set; }
 }

@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Netial.Database.Models; 
 
@@ -8,21 +10,22 @@ public class Post {
     public string? Text { get; set; }
 
     public int Upvotes {
-        get => UpvotedBy.Count();
+        get => UpvotedBy.Count;
     }
 
     public int Downvotes {
-        get => DownvotedBy.Count();
+        get => DownvotedBy.Count;
     }
 
     public int Views {
-        get => ViewedBy.Count();
+        get => ViewedBy.Count;
     }
     public int Shares { get; set; }
-    public User Author { get; set; }
-    public ICollection<Attachment> Attachments { get; set; }
-    public ICollection<Comment> Comments { get; set; }
-    public ICollection<User> UpvotedBy { get; set; }
-    public ICollection<User> DownvotedBy { get; set; }
-    public ICollection<User> ViewedBy { get; set; }
+    // Навигационные свойства
+    public virtual User Author { get; set; }
+    public virtual ICollection<Attachment> Attachments { get; set; }
+    public virtual ICollection<Comment> Comments { get; set; }
+    public virtual ICollection<User> UpvotedBy { get; set; }
+    public virtual ICollection<User> DownvotedBy { get; set; }
+    public virtual ICollection<User> ViewedBy { get; set; }
 }

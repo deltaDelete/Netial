@@ -9,8 +9,10 @@ public class Attachment {
     public string Link {
         get => $"/images/attachments/{Id}";
     }
-    public ICollection<Size> Sizes { get; set; }
-    public ICollection<Post> Posts { get; set; }
+    
+    // Навигационные свойства
+    public virtual ICollection<Size> Sizes { get; set; }
+    public virtual ICollection<Post> Posts { get; set; }
 }
 
 public class Size {
