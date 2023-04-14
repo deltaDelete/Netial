@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MudBlazor.Services;
+using Netial.Api;
 using Netial.Database;
 using Netial.Database.Models;
 using Netial.Helpers;
@@ -35,6 +36,8 @@ internal static class Program {
         app.MapPost("/account/logout", Logout);
         app.MapPost("/account/register", Register);
         app.MapGet("/images/users/{id}", GetUserImage);
+
+        app.ConfigurePostsApi();
     }
 
     private static void ConfigureApplication(this WebApplication app) {
