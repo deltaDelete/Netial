@@ -219,6 +219,16 @@ nav.navbar {
     .navbar-buttons-center > .btn {
         width: 30vw;
     }
+    .netial-post {
+        width: 28.5rem !important;
+        min-width: 25rem !important;
+        max-width: 50rem !important;
+    }
+    .netial-post > div > div.flex-row.flex-y-center.gap-2 {
+        flex-wrap: wrap;
+        flex-direction: column-reverse !important;
+        align-items: end;
+    }
 }
 
 div.navbar-buttons-center {
@@ -331,4 +341,41 @@ body > div.container {
 
 [thin] {
     font-weight: 300;
+}
+
+.netial-container {
+    display: inline-block;
+    padding: 1rem;
+    border-radius: var(--netial-primary-radius);
+    background-color: var(--netial-container-bg);
+}
+.netial-post {
+    width: 50rem;
+    overflow: hidden;
+}
+
+.netial-inner-container {
+    padding: 1rem;
+    border-radius: var(--netial-secondary-radius);
+    background-color: var(--netial-body-bg);
+}
+
+.netial-border-1 {
+    border-radius: var(--netial-trinary-radius);
+}
+.netial-border-2 {
+    border-radius: var(--netial-secondary-radius);
+}
+.netial-border-3 {
+    border-radius: var(--netial-primary-radius);
+}
+.netial-post-images {
+    flex-wrap: wrap;
+}
+.netial-post-images > :first-child {
+    width: 100%;
+}
+.netial-post-images > :not(:first-child) {
+    max-width: 4.65rem;
+    flex: 1;
 }
