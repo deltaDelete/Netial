@@ -1,4 +1,6 @@
-<button name="@Name" value="@Value" class="netial-icon-button px-3 py-2">
+@typeparam TContent
+
+<button name="@Name" value="@Value" aria-pressed="@Pressed.ToString()" class="netial-icon-button px-3 py-2" @onclick="@(() => OnClicked.Invoke())">
     <div class="p-0 m-0 flex-row gap-1">
         <span class="material-symbols-rounded">@Icon</span>
         <span>@Content</span>
@@ -17,7 +19,18 @@
     [Parameter]
     public string Value { get; set; }
     [Parameter]
-    public string Content { get; set; }
+    public TContent Content {
+        get => _content;
+        set {
+            _content = value;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+    [Parameter]
+    public EventCallback<TContent> ContentChanged { get; set; }
+
+    [Parameter]
+    public bool IsToggle { get; set; } = false;
 
     /// <summary>
     /// Идентификатор иконки из Google Fonts
@@ -25,4 +38,28 @@
     /// <seealso href="https://fonts.google.com/icons">Google Fonts</seealso>
     [Parameter]
     public string Icon { get; set; }
+
+    [Parameter]
+    public EventCallback<IconButton<TContent>> OnClick { get; set; }
+
+    public event Action OnClicked;
+
+    protected override Task OnParametersSetAsync() {
+        if (IsToggle)
+            OnClicked += () => Pressed = !Pressed;
+        OnClicked += () => OnClick.InvokeAsync(this);
+        return base.OnParametersSetAsync();
+    }
+
+    [Parameter]
+    public bool Pressed {
+        get => _pressed;
+        set {
+            _pressed = value;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private TContent _content;
+    private bool _pressed = false;
 }

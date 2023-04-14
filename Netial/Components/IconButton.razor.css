@@ -2,3 +2,8 @@
     background: var(--netial-body-bg);
     border-radius: var(--netial-secondary-radius);
 }
+.netial-icon-button[aria-pressed="True"],
+.netial-icon-button:active {
+    background: var(--netial-primary-color);
+    color: var(--netial-body-bg);
+}
