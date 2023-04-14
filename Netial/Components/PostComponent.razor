@@ -1,7 +1,10 @@
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthProvider
+
 <div class="netial-container netial-post">
     <div class="flex-column gap-2" style="width: 100%; height: 100%;">
         <div class="netial-inner-container flex-column gap-3">
-            <span>@Post.Text</span>
+            <span>@((MarkupString)Post.Text.Replace("\r\n", "<br />"))</span>
             @if (Post.Attachments.Any()) {
                 @* <div class="netial-post-images flex-row gap-2"> *@
                 @*     @foreach (var attachment in Post.Attachments) { *@
@@ -19,14 +22,16 @@
         </div>
         <div class="flex-row flex-y-center gap-2" style="justify-content: space-between;">
             <div>
-                <form class="flex-row flex-y-center flex-x-left gap-1" method="post" action="/post">
-                    <IconButton Icon="arrow_upward" Content="10"/>
-                    <IconButton Icon="comment" Content="12"/>
-                    <IconButton Icon="arrow_downward" Content="20"/>
-                    <IconButton Icon="share" Content="1"/>
-                    <IconButton Icon="visibility" Content="33"/>
+                <form class="flex-row flex-y-center flex-x-left gap-1" method="post" action="/posts" target="dummyframe">
+                    <input type="hidden" value="@Post.Id" name="id" />
+                    <IconButton TContent="int" Name="action" Value="upvote" Icon="arrow_upward" Content="@Post.UpvotedBy.Count" IsToggle="true" Pressed="@_isUpvotePressed" OnClick="OnClick"/>
+                    <IconButton TContent="int" Name="action" Value="comment" Icon="comment" Content="@Post.Comments.Count" OnClick="OnClick"/>
+                    <IconButton TContent="int" Name="action" Value="downvote" Icon="arrow_downward" Content="@Post.Downvotes" IsToggle="true" Pressed="@_isUpvotePressed" OnClick="OnClick"/>
+                    <IconButton TContent="int" Name="action" Value="share" Icon="share" Content="@Post.Shares" OnClick="OnClick"/>
+                    <IconButton TContent="int" Name="action" Value="view" Icon="visibility" Content="@Post.Views" OnClick="OnClick"/>
                 </form>
             </div>
+            <span>@Post.CreationDate</span>
             <AuthorInfo Class="gap-2" User="Post.Author" />
         </div>
     </div>
@@ -35,4 +40,33 @@
 @code {
     [Parameter]
     public Post Post { get; set; }
+
+    private Guid CurrentGuid;
+
+    private bool _isUpvotePressed;
+    private bool _isDownvotePressed;
+
+    private void OnClick(IconButton<int> args) {
+        args.Content += 1;
+    }
+
+    protected override async void OnInitialized() {
+        var claims = (await AuthProvider.GetAuthenticationStateAsync()).User.Claims;
+        if (claims.Any())
+            CurrentGuid = Guid.Parse(claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+        _isUpvotePressed = IsUpvotePressed();
+        _isDownvotePressed = IsDownvotePressed();
+        base.OnInitialized();
+    }
+
+    private bool IsUpvotePressed() {
+        return Post.UpvotedBy
+            .Any(x => 
+                x.Id == CurrentGuid);
+    }
+    private bool IsDownvotePressed() {
+        return Post.DownvotedBy
+            .Any(x => 
+                x.Id == CurrentGuid);
+    }
 }
