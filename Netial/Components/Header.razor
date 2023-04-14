@@ -15,11 +15,19 @@
         <div style="justify-self: right;">
             <AuthorizeView>
                 <Authorized>
-                    <form method="post" action="/account/logout">
-                        <button type="submit" style="color: unset; background-color: unset; border-color: unset; border-style: unset;">
+                    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                        <ActivatorContent>
                             <UserInfo Style="gap: 1rem;"/>
-                        </button>
-                    </form>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <form action="/account/logout" method="post" class="mud-list-item-clickable mud-ripple">
+                                <button type="submit" class="mud-typography mud-typography-body1 mud-list-item mud-list-item-gutters">
+                                    <p class="mud-typography mud-typography-body1">Выйти</p>
+                                </button>
+                            </form>
+                        </ChildContent>
+                    </MudMenu>
+                    
                 </Authorized>
                 <NotAuthorized>
                     <Button IsLink="true" Href="/account/login" Text="Войти" Selected="false"/>

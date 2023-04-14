@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using MudBlazor.Services;
 using Netial.Database;
 using Netial.Helpers;
 using Netial.Models;
@@ -63,6 +64,7 @@ internal class Program {
         services.AddSingleton<EmailService>();
         services.AddDbContext<ApplicationContext>();
         services.AddOptions();
+        services.AddMudServices();
         
         services.AddAuthorization();
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
