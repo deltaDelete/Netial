@@ -1,38 +1,40 @@
 @using System.Security.Claims
+@using Ljbc1994.Blazor.IntersectionObserver
+@using Ljbc1994.Blazor.IntersectionObserver.Components
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.EntityFrameworkCore.Internal
+@using Netial.Database
+@inject IIntersectionObserverService ObserverService
 @inject AuthenticationStateProvider AuthProvider
+@inject IDbContextFactory<ApplicationContext> DbFactory
 
-<div class="netial-container netial-post">
+<div class="netial-container netial-post" @ref="PostRoot">
     <div class="flex-column gap-2" style="width: 100%; height: 100%;">
         <div class="netial-inner-container flex-column gap-3">
             <span>@((MarkupString)Post.Text.Replace("\r\n", "<br />"))</span>
             @if (Post.Attachments.Any()) {
-                @* <div class="netial-post-images flex-row gap-2"> *@
-                @*     @foreach (var attachment in Post.Attachments) { *@
-                @*         <img src="@attachment.Id" alt="@attachment.Description" class="netial-border-1"/> *@
-                @*     } *@
-                @* </div> *@
                 <MudCarousel Style="height: 25rem; width: 100%; flex-grow: 1;" Class="mud-width-full" ShowArrows="true" ShowBullets="false" EnableSwipeGesture="true" AutoCycle="false" TData="Attachment" ItemsSource="Post.Attachments">
                     <ItemTemplate>
-                        <a href="@($"/images/users/{context.Id}.jpg")" title="Открыть полностью">
-                            <MudImage ObjectFit="ObjectFit.Contain" ObjectPosition="ObjectPosition.Center" Style="height: 25rem; width: 100%;" Src="@($"/images/users/{context.Id}.jpg")"/>
+                        <a href="@(context.Link)" title="Открыть полностью">
+                            <MudImage ObjectFit="ObjectFit.Contain" ObjectPosition="ObjectPosition.Center" Style="height: 25rem; width: 100%;" Src="@context.Link"/>
                         </a>
                     </ItemTemplate>
                 </MudCarousel>
             }
         </div>
+        <span style="align-self: end;">@Post.CreationDate</span>
         <div class="flex-row flex-y-center gap-2" style="justify-content: space-between;">
             <div>
                 <form class="flex-row flex-y-center flex-x-left gap-1" method="post" action="/posts" target="dummyframe">
-                    <input type="hidden" value="@Post.Id" name="id" />
-                    <IconButton TContent="int" Name="action" Value="upvote" Icon="arrow_upward" Content="@Post.UpvotedBy.Count" IsToggle="true" Pressed="@_isUpvotePressed" OnClick="OnClick"/>
-                    <IconButton TContent="int" Name="action" Value="comment" Icon="comment" Content="@Post.Comments.Count" OnClick="OnClick"/>
-                    <IconButton TContent="int" Name="action" Value="downvote" Icon="arrow_downward" Content="@Post.Downvotes" IsToggle="true" Pressed="@_isUpvotePressed" OnClick="OnClick"/>
-                    <IconButton TContent="int" Name="action" Value="share" Icon="share" Content="@Post.Shares" OnClick="OnClick"/>
-                    <IconButton TContent="int" Name="action" Value="view" Icon="visibility" Content="@Post.Views" OnClick="OnClick"/>
+                    <input type="hidden" value="@Post.Id" name="id"/>
+                    <IconButton TContent="int" Name="action" Value="upvote" Icon="arrow_upward" Content="@Post.UpvotedBy.Count" IsToggle="true" Pressed="@_isUpvotePressed" />
+                    <IconButton TContent="int" IsLink="true" Href="@($"/post/{Post.Id}")" Icon="comment" Content="@Post.Comments.Count" />
+                    <IconButton TContent="int" Name="action" Value="downvote" Icon="arrow_downward" Content="@Post.Downvotes" IsToggle="true" Pressed="@_isUpvotePressed" />
+                    <IconButton TContent="int" Name="action" Value="share" Icon="share" Content="@Post.Shares" />
+                    <IconButton TContent="int" Name="action" Type="button" Value="view" Icon="visibility" Content="@Post.Views" />
                 </form>
             </div>
-            <span>@Post.CreationDate</span>
-            <AuthorInfo Class="gap-2" User="Post.Author" />
+            <AuthorInfo Class="gap-2" User="Post.Author"/>
         </div>
     </div>
 </div>
@@ -41,32 +43,68 @@
     [Parameter]
     public Post Post { get; set; }
 
-    private Guid CurrentGuid;
+    private Guid _currentGuid;
+    private bool _isLoggedIn;
+    private bool _isAlreadyViewed;
 
     private bool _isUpvotePressed;
     private bool _isDownvotePressed;
 
-    private void OnClick(IconButton<int> args) {
-        args.Content += 1;
-    }
+    public ElementReference PostRoot { get; set; }
+    public bool IsIntersecting { get; set; }
+    public Action<bool> IsIntersectingChanged { get; set; }
 
     protected override async void OnInitialized() {
-        var claims = (await AuthProvider.GetAuthenticationStateAsync()).User.Claims;
-        if (claims.Any())
-            CurrentGuid = Guid.Parse(claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+        var claims = (await AuthProvider.GetAuthenticationStateAsync()).User.Claims.ToDictionary(x => x.Type);
+        if (claims.ContainsKey(ClaimTypes.NameIdentifier)) {
+            _currentGuid = Guid.Parse(claims[ClaimTypes.NameIdentifier].Value);
+            _isLoggedIn = true;
+        }
         _isUpvotePressed = IsUpvotePressed();
         _isDownvotePressed = IsDownvotePressed();
+        IsIntersectingChanged += OnPostViewed;
         base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await SetupObserver();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    public async Task SetupObserver() {
+        await ObserverService.Observe(PostRoot, async entries => {
+            var entry = entries.FirstOrDefault();
+            IsIntersecting = entry.IsIntersecting;
+            IsIntersectingChanged?.Invoke(IsIntersecting);
+            StateHasChanged();
+        });
     }
 
     private bool IsUpvotePressed() {
         return Post.UpvotedBy
-            .Any(x => 
-                x.Id == CurrentGuid);
+            .Any(x =>
+                x.Id == _currentGuid);
     }
+
     private bool IsDownvotePressed() {
         return Post.DownvotedBy
-            .Any(x => 
-                x.Id == CurrentGuid);
+            .Any(x =>
+                x.Id == _currentGuid);
     }
+    private void OnPostViewed(bool isIntersecting) {
+        if (!isIntersecting) return;
+        if (!_isLoggedIn) return;
+        if (_isAlreadyViewed) return;
+        using var Db = DbFactory.CreateDbContext();
+        var post = Db.Posts.Find(Post.Id);
+        if (post.ViewedBy.Any(x => x.Id == _currentGuid)) {
+            _isAlreadyViewed = true;
+            return;
+        }
+        post.ViewedBy.Add(Db.Users.Find(_currentGuid));
+        Db.SaveChanges();
+    }
+
 }
