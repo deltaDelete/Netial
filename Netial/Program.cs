@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Security.Claims;
 using System.Text;
+using Ljbc1994.Blazor.IntersectionObserver;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Netial.Api;
 using Netial.Database;
@@ -53,7 +55,6 @@ internal static class Program {
         app.UseStaticFiles();
 
         app.UseRouting();
-
         app.UseAuthentication();
         app.UseAuthorization();
         
@@ -71,7 +72,7 @@ internal static class Program {
         services.AddServerSideBlazor();
         services.AddHttpContextAccessor();
         services.AddSingleton<EmailService>();
-        services.AddDbContext<ApplicationContext>();
+        services.AddDbContextFactory<ApplicationContext>(options => options.UseLazyLoadingProxies());
         services.AddOptions();
         services.AddMudServices();
         
