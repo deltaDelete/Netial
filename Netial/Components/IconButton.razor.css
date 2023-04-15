@@ -1,6 +1,8 @@
 .netial-icon-button {
     background: var(--netial-body-bg);
     border-radius: var(--netial-secondary-radius);
+    text-decoration: unset;
+    color: inherit;
 }
 .netial-icon-button[aria-pressed="True"],
 .netial-icon-button:active {

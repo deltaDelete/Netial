@@ -1,23 +1,39 @@
 @typeparam TContent
 
-<button name="@Name" value="@Value" aria-pressed="@Pressed.ToString()" class="netial-icon-button px-3 py-2" @onclick="@(() => OnClicked.Invoke())">
-    <div class="p-0 m-0 flex-row gap-1">
-        <span class="material-symbols-rounded">@Icon</span>
-        <span>@Content</span>
-    </div>
-</button>
+@if (IsLink) {
+    <a class="netial-icon-button px-3 py-2" href="@Href">
+        <div class="p-0 m-0 flex-row gap-1">
+            <span class="material-symbols-rounded">@Icon</span>
+            <span>@Content</span>
+        </div>
+    </a>
+}
+else {
+    <button type="@Type" name="@Name" value="@Value" aria-pressed="@Pressed.ToString()" class="netial-icon-button px-3 py-2" @onclick="@(() => OnClicked.Invoke())">
+        <div class="p-0 m-0 flex-row gap-1">
+            <span class="material-symbols-rounded">@Icon</span>
+            <span>@Content</span>
+        </div>
+    </button>
+}
 
 @code {
+
     /// <summary>
     /// Имя кнопки в пределах тега form
     /// </summary>
     [Parameter]
     public string Name { get; set; }
+
     /// <summary>
     /// Значение кнопки в пределах формы
     /// </summary>
     [Parameter]
     public string Value { get; set; }
+
+    [Parameter]
+    public string Type { get; set; } = "submit";
+    
     [Parameter]
     public TContent Content {
         get => _content;
@@ -26,6 +42,7 @@
             InvokeAsync(StateHasChanged);
         }
     }
+
     [Parameter]
     public EventCallback<TContent> ContentChanged { get; set; }
 
@@ -59,6 +76,11 @@
             InvokeAsync(StateHasChanged);
         }
     }
+
+    [Parameter]
+    public bool IsLink { get; set; }
+    [Parameter]
+    public string Href { get; set; }
 
     private TContent _content;
     private bool _pressed = false;
