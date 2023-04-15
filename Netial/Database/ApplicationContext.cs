@@ -17,13 +17,15 @@ public class ApplicationContext : DbContext {
     public DbSet<Chat> Chats { get; set; } = null!;
     public DbSet<Message> Messages { get; set; } = null!;
 
-    public ApplicationContext(IConfiguration configuration, ILogger<ApplicationContext> logger) {
+    public ApplicationContext(DbContextOptions<ApplicationContext> options, IConfiguration configuration, ILogger<ApplicationContext> logger) : this(options) {
         _configuration = configuration;
         _logger = logger;
         _connectionString = _configuration.GetConnectionString("DefaultConnection");
         Database.EnsureCreated();
-        _logger.LogInformation(Database.GenerateCreateScript());
+        //_logger.LogInformation(Database.GenerateCreateScript());
     }
+
+    private ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         optionsBuilder.UseLazyLoadingProxies();
