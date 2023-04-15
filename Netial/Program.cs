@@ -38,6 +38,7 @@ internal static class Program {
         app.MapPost("/account/logout", Logout);
         app.MapPost("/account/register", Register);
         app.MapGet("/images/users/{id}", GetUserImage);
+        app.MapGet("/images/attachments/{id}", GetAttachmentImage);
 
         app.ConfigurePostsApi();
     }
@@ -200,7 +201,15 @@ internal static class Program {
     private static IResult GetUserImage(string id, IWebHostEnvironment env) {
         var fileinfo = env.WebRootFileProvider.GetFileInfo($"images/users/{id}.jpg");
         if (!fileinfo.Exists) {
-            return Results.NotFound(id);
+            return Results.File(env.WebRootFileProvider.GetFileInfo("images/users/blank.png").CreateReadStream());
+        }
+        return Results.File(fileinfo.CreateReadStream());
+    }
+
+    private static async Task<IResult> GetAttachmentImage(string id, IWebHostEnvironment env) {
+        var fileinfo = env.WebRootFileProvider.GetFileInfo($"images/attachments/{id}.jpg");
+        if (!fileinfo.Exists) {
+            return Results.File(env.WebRootFileProvider.GetFileInfo("images/unavailable.png").CreateReadStream());
         }
         return Results.File(fileinfo.CreateReadStream());
     }
