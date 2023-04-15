@@ -221,7 +221,7 @@ nav.navbar {
         width: 30vw;
     }
     .netial-post {
-        width: 28.5rem !important;
+        width: 95vw !important;
         min-width: 25rem !important;
         max-width: 50rem !important;
     }
@@ -380,4 +380,20 @@ body > div.container {
 .netial-post-images > :not(:first-child) {
     max-width: 4.65rem;
     flex: 1;
+}
+
+.mud-tab.mud-tab-active {
+    color: var(--netial-body-bg);
+    background: var(--netial-primary-color);
+}
+.mud-tab.mud-tab-active:hover {
+    /*box-shadow: inset 0rem 0.25rem 1rem 0rem rgba(0,0,0, 0.5);*/
+    background-color: white;
+}
+.mud-tab,
+.mud-tabs-toolbar {
+    border-radius: var(--netial-secondary-radius);
+}
+.mud-tab-slider {
+    display: none;
 }
