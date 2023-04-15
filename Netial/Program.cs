@@ -75,6 +75,7 @@ internal static class Program {
         services.AddDbContextFactory<ApplicationContext>(options => options.UseLazyLoadingProxies());
         services.AddOptions();
         services.AddMudServices();
+        services.AddIntersectionObserver();
         
         services.AddAuthorization();
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
