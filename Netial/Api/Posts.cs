@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Netial.Database;
 using Netial.Database.Models;
@@ -6,6 +7,7 @@ using Netial.Database.Models;
 namespace Netial.Api; 
 
 public static class PostsController {
+    private static Regex _matchHtmlTags = new Regex("<[^>]*>");
     public static void ConfigurePostsApi(this WebApplication app) {
         app.MapPost("/posts/new", NewPost);
         app.MapPost("/posts/upvote/{id}", UpvotePost);
@@ -82,7 +84,7 @@ public static class PostsController {
 
         await db.Posts.AddAsync(new Post() {
             Author = user,
-            Text = text
+            Text = _matchHtmlTags.Replace(text, "")
         });
 
         await db.SaveChangesAsync();
