@@ -1,0 +1,52 @@
+@using Netial.Database
+@using Microsoft.AspNetCore.Components
+@using System.Security.Claims
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthState
+@inject ApplicationContext Db
+
+<MudDialog Class="netial-border-3 p-2" Style="width: 80vw;">
+    <TitleContent>
+        Новый пост
+    </TitleContent>
+    <DialogContent>
+        <form action="/posts/new" method="post" target="dummyframe" name="newpost">
+            <input type="hidden" value="@_post.Author.Id" required="required" id="author" name="author"/>
+            <p class="form-floating">
+                <textarea type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " @bind="@_post.Text" />
+                <label for="text">Текст</label>
+            </p>
+            <div class="flex-row gap-2">
+                <Button Type="button" Selected="false" Text="Отмена" OnClick="Cancel"/>
+                <Button Type="submit" Selected="true" Text="Опубликовать" OnClick="Submit"/>
+            </div>
+        </form>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private Post _post = new Post();
+
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    protected override async void OnInitialized() {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var claims = state.User.Claims.ToDictionary(x => x.Type);
+        var guid = Guid.Parse(claims[ClaimTypes.NameIdentifier].Value);
+
+        var user = Db.Users.Find(guid);
+        _post.Author = user;
+
+        base.OnInitialized();
+    }
+
+    private void Cancel() {
+        MudDialog.Cancel();
+    }
+
+    private void Submit() {
+        MudDialog.Close(DialogResult.Ok(_post.Id));
+    }
+
+}
