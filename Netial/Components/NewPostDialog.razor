@@ -13,19 +13,39 @@
         <form action="/posts/new" method="post" target="dummyframe" name="newpost">
             <input type="hidden" value="@_post.Author.Id" required="required" id="author" name="author"/>
             <p class="form-floating">
-                <textarea type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " @bind="@_post.Text" />
+                <textarea type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " @bind="@_post.Text" style="background-color: var(--netial-body-bg); color: var(--netial-primary-color);"/>
                 <label for="text">Текст</label>
             </p>
             <div class="flex-row gap-2">
                 <Button Type="button" Selected="false" Text="Отмена" OnClick="Cancel"/>
                 <Button Type="submit" Selected="true" Text="Опубликовать" OnClick="Submit"/>
             </div>
+            <MudFileUpload T="IReadOnlyList<IBrowserFile>" OnFilesChanged="OnInputFileChanged"
+                           Hidden="false"
+                           Class="flex-1"
+                           InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20"
+                           InputStyle="opacity:0"
+                           @ondragenter="@SetDragClass" @ondragleave="@ClearDragClass" @ondragend="@ClearDragClass">
+                <ButtonTemplate>
+                    <MudPaper MinHeight="10rem" Outlined="true" Class="@_dragClass">
+                        <MudText Typo="Typo.body2">Перетащите сюда файлы или нажмите</MudText>
+                        @foreach (var file in _fileNames) {
+                            <MudChip Color="Color.Dark" Text="@file"/>
+                        }
+                    </MudPaper>
+                </ButtonTemplate>
+            </MudFileUpload>
         </form>
     </DialogContent>
 </MudDialog>
 
 @code {
+    // todo: загрузка файлов
+    private static readonly string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full z-10";
+    
     private Post _post = new Post();
+    private string _dragClass = DefaultDragClass;
+    private List<string> _fileNames = new List<string>();
 
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
@@ -47,6 +67,23 @@
 
     private void Submit() {
         MudDialog.Close(DialogResult.Ok(_post.Id));
+    }
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e) {
+        ClearDragClass();
+        var files = e.GetMultipleFiles();
+        foreach (var file in files)
+        {
+            _fileNames.Add(file.Name);
+        }
+    }
+
+    private void SetDragClass() {
+        _dragClass = $"{DefaultDragClass} mud-border-primary";
+    }
+
+    private void ClearDragClass() {
+        _dragClass = DefaultDragClass;
     }
 
 }
