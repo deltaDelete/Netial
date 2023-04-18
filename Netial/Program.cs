@@ -41,6 +41,7 @@ internal static class Program {
         app.MapGet("/images/attachments/{id}", GetAttachmentImage);
 
         app.ConfigurePostsApi();
+        app.ConfigureCommentsApi();
     }
 
     private static void ConfigureApplication(this WebApplication app) {
