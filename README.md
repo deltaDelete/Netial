@@ -32,3 +32,49 @@ ASP.NET Core - это кроссплатформенный фреймворк с
 
 ## Диаграмма базы данных
 ![БД](./Netial/netialdb.png)
+
+## Триггеры
+```mysql
+create definer = dev@`%` trigger onNewView
+    after insert
+    on post_views
+    for each row
+begin
+        update posts
+            set posts.views = posts.views + 1
+        where id = new.viewed_posts_id;
+    end;
+```
+```mysql
+create definer = dev@`%` trigger onNewUpvote
+    after insert
+    on post_upvotes
+    for each row
+begin
+        update posts
+            set posts.upvotes = posts.upvotes + 1
+        where id = new.upvoted_posts_id;
+    end;
+```
+```mysql
+create definer = dev@`%` trigger onNewDownvote
+    after insert
+    on post_downvotes
+    for each row
+begin
+        update posts
+            set posts.downvotes = posts.downvotes + 1
+        where id = new.downvoted_posts_id;
+    end;
+```
+```mysql
+create definer = dev@`%` trigger onNewCommentLike
+    after insert
+    on comment_likes
+    for each row
+begin
+        update comments
+            set comments.likes = comments.likes + 1
+        where id = new.liked_comments_id;
+    end;
+```

@@ -10,17 +10,11 @@ public class Post {
     public string? Text { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.Now;
 
-    public int Upvotes {
-        get => UpvotedBy.Count;
-    }
+    public int Upvotes { get; set; }
 
-    public int Downvotes {
-        get => DownvotedBy.Count;
-    }
+    public int Downvotes { get; set; }
 
-    public int Views {
-        get => ViewedBy.Count;
-    }
+    public int Views { get; set; }
     public int Shares { get; set; }
     // Навигационные свойства
     public virtual User Author { get; set; }
