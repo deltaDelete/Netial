@@ -34,8 +34,12 @@ ASP.NET Core - это кроссплатформенный фреймворк с
 ![БД](./Netial/netialdb.png)
 
 ## Триггеры
+
+<details>
+<summary>При вставке</summary>
+
 ```mysql
-create definer = dev@`%` trigger onNewView
+create trigger onNewView
     after insert
     on post_views
     for each row
@@ -46,7 +50,7 @@ begin
     end;
 ```
 ```mysql
-create definer = dev@`%` trigger onNewUpvote
+create trigger onNewUpvote
     after insert
     on post_upvotes
     for each row
@@ -57,7 +61,7 @@ begin
     end;
 ```
 ```mysql
-create definer = dev@`%` trigger onNewDownvote
+create trigger onNewDownvote
     after insert
     on post_downvotes
     for each row
@@ -68,7 +72,7 @@ begin
     end;
 ```
 ```mysql
-create definer = dev@`%` trigger onNewCommentLike
+create trigger onNewCommentLike
     after insert
     on comment_likes
     for each row
@@ -78,3 +82,77 @@ begin
         where id = new.liked_comments_id;
     end;
 ```
+```mysql
+    create trigger onNewComment
+        after insert
+        on comments
+        for each row
+    begin
+        update posts
+        set posts.comment_count = posts.comment_count + 1
+        where id = new.post_id;
+    end;
+```
+
+</details>
+
+<details>
+    <summary>При удалении</summary>
+
+```mysql
+create trigger onRemoveComment
+    after delete 
+    on comments
+    for each row
+begin
+    update posts
+    set posts.comment_count = posts.comment_count - 1
+    where id = old.post_id;
+end;
+```
+```mysql
+create trigger onRemoveUpvote
+    after delete 
+    on post_upvotes
+    for each row
+begin
+    update posts
+    set posts.upvotes = posts.upvotes - 1
+    where id = old.upvoted_posts_id;
+end;
+```
+```mysql
+create trigger onRemoveDownvote
+    after delete
+    on post_downvotes
+    for each row
+begin
+    update posts
+    set posts.downvotes = posts.downvotes - 1
+    where id = old.downvoted_posts_id;
+end;
+```
+```mysql
+create trigger onRemoveView
+    after delete 
+    on post_views
+    for each row
+begin
+    update posts
+    set posts.views = posts.views - 1
+    where id = old.viewed_posts_id;
+end;
+```
+```mysql
+create trigger onCommentUnlike
+    after delete 
+    on comment_likes
+    for each row
+begin
+    update comments
+    set comments.likes = comments.likes - 1
+    where id = old.liked_comments_id;
+end;
+```
+
+</details>
