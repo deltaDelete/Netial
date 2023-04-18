@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Netial.Models; 
+namespace Netial.Database.Models; 
 
 [Obsolete]
 public class UserAccount {

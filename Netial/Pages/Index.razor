@@ -1,9 +1,56 @@
-﻿@page "/"
+﻿@inject IDbContextFactory<ApplicationContext> DbFactory
+@inject IDialogService DialogService
+@inject AuthenticationStateProvider AuthState
+@inject ILogger<Index> Logger
 
-<PageTitle>Index</PageTitle>
+@page "/"
+@using Netial.Database
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
 
-<h1>Hello, world!</h1>
+<PageTitle>Новости - Netial</PageTitle>
 
-Welcome to your new app.
+<div class="flex-column flex-x-center flex-y-center gap-3">
+    <MudTabs Centered="true" @bind-ActivePanelIndex="_activeTab">
+        <MudTabPanel Text="Последнее"/>
+        <MudTabPanel Text="Горячее"/>
+    </MudTabs>
+    <AuthorizeView>
+        <Authorized>
+            <MudButton OnClick="NewPost">Новый пост</MudButton>
+        </Authorized>
+    </AuthorizeView>
+    @if (_activeTab == 0) {
+        @foreach (var post in DbFactory.CreateDbContext().Posts.OrderByDescending(x => x.CreationDate)) {
+            <PostComponent Post="post"/>
+        }
+    }
+    else {
+        @foreach (var post in DbFactory.CreateDbContext().Posts.Where(x => x.CreationDate.Day > DateTime.Today.Day - 7).OrderByDescending(x => x.UpvotedBy.Count)) {
+            <PostComponent Post="post"/>
+        }
+    }
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    private int _activeTab = 0;
+    private User? _currentUser;
+
+    private async void NewPost() {
+        var dialog = await DialogService.ShowAsync<NewPostDialog>();
+        var result = await dialog.Result;
+    }
+
+    protected override async void OnInitialized() {
+        var db = await DbFactory.CreateDbContextAsync();
+        var claims = (await AuthState.GetAuthenticationStateAsync())
+            .User.Claims
+            .ToDictionary(x => x.Type);
+        if (claims.ContainsKey(ClaimTypes.NameIdentifier)) {
+            var guid = claims[ClaimTypes.NameIdentifier].Value;
+            _currentUser = await db.Users.FindAsync(Guid.Parse(guid));
+        }
+        base.OnInitialized();
+    }
+
+}

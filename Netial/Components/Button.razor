@@ -1,5 +1,5 @@
 @using Microsoft.AspNetCore.Mvc.Razor
-<div class="btn p-2" selected="@Selected">
+<div class="btn" selected="@Selected">
     @if (IsLink) {
         <a class="nav-link text-dark" @onclick="OnClick" href="@Href"><div>@Text</div></a>
     }

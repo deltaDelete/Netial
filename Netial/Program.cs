@@ -1,41 +1,50 @@
 using System.Globalization;
 using System.Security.Claims;
 using System.Text;
+using Ljbc1994.Blazor.IntersectionObserver;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using MudBlazor.Services;
+using Netial.Api;
 using Netial.Database;
+using Netial.Database.Models;
 using Netial.Helpers;
 using Netial.Models;
 
-internal class Program {
+internal static class Program {
     private static readonly string[] REGISTER_FIELDS = { "lastname", "firstname", "birthdate", "email", "password", "password2" };
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-        ConfigureServices(builder.Services);
+        builder.Services.ConfigureServices();
 
         var app = builder.Build();
 
-        ConfigureApplication(app);
+        app.ConfigureApplication();
 
-        ConfigureMinimalApi(app);
+        app.ConfigureMinimalApi();
 
         app.Run();
 
 
     }
 
-    private static void ConfigureMinimalApi(WebApplication app) {
+    private static void ConfigureMinimalApi(this WebApplication app) {
         app.MapGet("/testuser", (ApplicationContext db) => { return db.Users.ToList(); });
         app.MapGet("/security/hash", GenHash);
         app.MapPost("/account/login", Login);
         app.MapPost("/account/logout", Logout);
         app.MapPost("/account/register", Register);
         app.MapGet("/images/users/{id}", GetUserImage);
+        app.MapGet("/images/attachments/{id}", GetAttachmentImage);
+
+        app.ConfigurePostsApi();
+        app.ConfigureCommentsApi();
     }
 
-    private static void ConfigureApplication(WebApplication app) {
+    private static void ConfigureApplication(this WebApplication app) {
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment()) {
             app.UseExceptionHandler("/Error");
@@ -48,25 +57,36 @@ internal class Program {
         app.UseStaticFiles();
 
         app.UseRouting();
-
         app.UseAuthentication();
         app.UseAuthorization();
         
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
+
+        #if DEBUG
+        app.UseSwagger();
+        app.UseSwaggerUI(options => { options.RoutePrefix = "/swagger"; });
+        #endif
     }
 
-    static void ConfigureServices(IServiceCollection services) {
+    private static void ConfigureServices(this IServiceCollection services) {
         services.AddRazorPages();
         services.AddServerSideBlazor();
         services.AddHttpContextAccessor();
         services.AddSingleton<EmailService>();
-        services.AddDbContext<ApplicationContext>();
+        services.AddDbContextFactory<ApplicationContext>(options => options.UseLazyLoadingProxies());
         services.AddOptions();
+        services.AddMudServices();
+        services.AddIntersectionObserver();
         
         services.AddAuthorization();
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options => options.LoginPath = "/login");
+
+        #if DEBUG
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+        #endif
     }
     
     private static async Task<IResult> Register(string? returnUrl, HttpContext context, ApplicationContext db) {
@@ -182,7 +202,15 @@ internal class Program {
     private static IResult GetUserImage(string id, IWebHostEnvironment env) {
         var fileinfo = env.WebRootFileProvider.GetFileInfo($"images/users/{id}.jpg");
         if (!fileinfo.Exists) {
-            return Results.NotFound(id);
+            return Results.File(env.WebRootFileProvider.GetFileInfo("images/users/blank.png").CreateReadStream());
+        }
+        return Results.File(fileinfo.CreateReadStream());
+    }
+
+    private static async Task<IResult> GetAttachmentImage(string id, IWebHostEnvironment env) {
+        var fileinfo = env.WebRootFileProvider.GetFileInfo($"images/attachments/{id}.jpg");
+        if (!fileinfo.Exists) {
+            return Results.File(env.WebRootFileProvider.GetFileInfo("images/unavailable.png").CreateReadStream());
         }
         return Results.File(fileinfo.CreateReadStream());
     }

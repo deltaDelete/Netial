@@ -1,0 +1,15 @@
+.netial-icon-button {
+    background: var(--netial-body-bg);
+    border-radius: var(--netial-secondary-radius);
+    text-decoration: unset;
+    color: inherit;
+}
+.netial-icon-button[aria-pressed="True"],
+.netial-icon-button:active {
+    background: var(--netial-primary-color);
+    color: var(--netial-body-bg);
+}
+.netial-icon-button:hover {
+    background: var(--netial-primary-inactive-color);
+    color: var(--netial-body-bg);
+}

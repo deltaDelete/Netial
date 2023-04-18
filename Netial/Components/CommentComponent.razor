@@ -1,0 +1,57 @@
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using Netial.Database
+@inject AuthenticationStateProvider AuthState
+
+<div class="flex-row flex-y-center flex-x-left netial-post gap-2 p-2">
+    <div class="avatar-circle-contrainer-3">
+        <img src="@($"/images/users/{Comment.Author.Id}")" alt="Аватар"/>
+    </div>
+    <div class="flex-column flex-x-left gap-1">
+        <a href="@($"/user/{Comment.Author.Id}")" class="link-primary" style="cursor: pointer;">@Comment.Author.LastName @Comment.Author.FirstName</a>
+        <span>@Comment.Text</span>
+    </div>
+    <div style="margin-left: auto; align-self: center">
+        <AuthorizeView>
+            <Authorized>
+                <form action="/comments/like/@Comment.Id" method="post" target="dummyframe">
+                    <IconButton TContent="int" Name="action" Value="like" Icon="favorite" Content="Comment.Likes" Pressed="_isLiked" IsToggle="true" OnClick="IncreaseValue"/>
+                </form>
+            </Authorized>
+            <NotAuthorized>
+                <IconButton TContent="int" Type="button" Icon="favorite" Content="Comment.Likes" IsToggle="false"/>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public Comment Comment { get; set; }
+
+    private bool _isLiked = false;
+    private Guid _currentGuid = default;
+
+    private void IncreaseValue() {
+        if (_isLiked) {
+            Comment.Likes--;
+            _isLiked = false;
+        }
+        else {
+            Comment.Likes++;
+            _isLiked = true;
+        }
+    }
+
+    protected override async Task OnInitializedAsync() {
+        _currentGuid = Guid.Parse(AuthState.GetAuthenticationStateAsync().Result.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value);
+        _isLiked = await CheckLiked();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task<bool> CheckLiked() {
+        return Comment.LikedBy.Any(x => x.Id == _currentGuid);
+    }
+
+}

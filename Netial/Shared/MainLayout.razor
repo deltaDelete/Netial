@@ -1,7 +1,11 @@
-﻿@inherits LayoutComponentBase
+﻿@using MudBlazor.Utilities
+@inherits LayoutComponentBase
 
 <PageTitle>Netial</PageTitle>
 <Header />
+<MudThemeProvider IsDarkMode="true" Theme="Theme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 <div class="page">
     <main>
         <article class="content px-4">
@@ -9,3 +13,23 @@
         </article>
     </main>
 </div>
+
+@code {
+
+    public MudTheme Theme { get; set; } = new MudTheme() {
+        PaletteDark = new PaletteDark() {
+            Background = new MudColor("#333333"),
+            BackgroundGrey = new MudColor("#393939"),
+            Surface = new MudColor("#444444"),
+            TextPrimary = new MudColor(0xFF, 0xFF, 0xFF, 0xFF),
+            Primary = new MudColor("#f9f9f9")
+        },
+        Typography = new Typography() {
+            Default = new Default() {
+                FontFamily = new [] {"Montserrat", "emoji", "Segoe UI", "Tahoma", "Geneva", "Verdana", "sans-serif"},
+                FontSize = "16px"
+            }
+        }
+    };
+
+}

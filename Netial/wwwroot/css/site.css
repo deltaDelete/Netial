@@ -8,13 +8,14 @@
     --netial-container-bg: #444444;
     --netial-text-color: white;
     --netial-primary-color: #f9f9f9;
+    --netial-primary-inactive-color: #bbbbbb;
     
     --netial-primary-radius: 1.5rem;
     --netial-secondary-radius: 1rem;
     --netial-trinary-radius: 0.75rem;
     --netial-tetriary-radius: 0.5rem;
     
-    --bs-font-sans-serif: Montserrat, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --bs-font-sans-serif: Montserrat, emoji, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     --bs-body-bg: var(--netial-body-bg);
     --bs-body-color: var(--netial-text-color);
     
@@ -154,7 +155,7 @@ button.accept-policy {
 }
 
 .nav-item {
-    background: #BBBBBB;
+    background: var(--netial-primary-inactive-color);
     border-radius: .6rem;
     height: 2.4rem;
     display: inline-block;
@@ -172,6 +173,7 @@ a.navbar-brand {
     position: fixed;
     width: 100%;
     height: 4rem;
+    z-index: 1;
 }
 
 .nav-item:hover,
@@ -217,6 +219,17 @@ nav.navbar {
     
     .navbar-buttons-center > .btn {
         width: 30vw;
+    }
+    .netial-post {
+        width: 95vw !important;
+        min-width: 25rem !important;
+        max-width: 50rem !important;
+    }
+    .netial-post > div > div.flex-row.flex-y-center.gap-2 {
+        flex-wrap: wrap;
+        flex-direction: column-reverse !important;
+        align-items: flex-end;
+        align-content: flex-end;
     }
 }
 
@@ -330,4 +343,68 @@ body > div.container {
 
 [thin] {
     font-weight: 300;
+}
+
+.netial-container {
+    display: inline-block;
+    padding: 1rem;
+    border-radius: var(--netial-primary-radius);
+    background-color: var(--netial-container-bg);
+}
+.netial-post {
+    width: 50rem;
+    overflow: hidden;
+}
+
+.netial-inner-container {
+    padding: 1rem;
+    border-radius: var(--netial-secondary-radius);
+    background-color: var(--netial-body-bg);
+}
+
+.netial-border-1 {
+    border-radius: var(--netial-trinary-radius);
+}
+.netial-border-2 {
+    border-radius: var(--netial-secondary-radius);
+}
+.netial-border-3 {
+    border-radius: var(--netial-primary-radius);
+}
+.netial-post-images {
+    flex-wrap: wrap;
+}
+.netial-post-images > :first-child {
+    width: 100%;
+}
+.netial-post-images > :not(:first-child) {
+    max-width: 4.65rem;
+    flex: 1;
+}
+
+.mud-tab.mud-tab-active {
+    color: var(--netial-body-bg);
+    background: var(--netial-primary-color);
+}
+.mud-tab.mud-tab-active:hover {
+    /*box-shadow: inset 0rem 0.25rem 1rem 0rem rgba(0,0,0, 0.5);*/
+    background-color: white;
+}
+.mud-tab,
+.mud-tabs-toolbar {
+    border-radius: var(--netial-secondary-radius);
+}
+.mud-tab-slider {
+    display: none;
+}
+
+.avatar-circle-contrainer-3 {
+    width: 3rem;
+    aspect-ratio: 1/1;
+    border-radius: 100%;
+    overflow: hidden;
+}
+
+.avatar-circle-contrainer-3 img {
+    height: 3rem;
 }

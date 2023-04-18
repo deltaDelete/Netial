@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Netial.Models;
+namespace Netial.Database.Models;
 
 public class Group {
     [Key]
@@ -8,5 +8,6 @@ public class Group {
     public GroupPermissions Permissions { get; set; }
     public string Name { get; set; }
 
-    public ICollection<User> Users { get; set; }
+    // Навигационные свойства
+    public virtual ICollection<User> Users { get; set; }
 }
