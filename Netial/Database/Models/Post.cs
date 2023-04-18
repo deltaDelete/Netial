@@ -2,11 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace Netial.Database.Models; 
+namespace Netial.Database.Models;
 
 public class Post {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
+
     public string? Text { get; set; }
     public DateTime CreationDate { get; set; } = DateTime.Now;
 
@@ -16,6 +17,9 @@ public class Post {
 
     public int Views { get; set; }
     public int Shares { get; set; }
+
+    public int CommentCount { get; set; }
+
     // Навигационные свойства
     public virtual User Author { get; set; }
     public virtual ICollection<Attachment> Attachments { get; set; }
