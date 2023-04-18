@@ -92,7 +92,23 @@ public static class PostsController {
         return Results.Ok();
     }
 
-    private static Task MarkViewedPost(string id, HttpContext context) {
-        throw new NotImplementedException();
+    private static async Task<IResult> MarkViewedPost(string id, HttpContext context, ApplicationContext db) {
+        var userGuid = context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Results.Unauthorized();
+
+        var user = await db.Users.FindAsync(Guid.Parse(userGuid));
+        if (user is null) {
+            return Results.Unauthorized();
+        }
+
+        if (!Guid.TryParse(id, out Guid postId)) return Results.BadRequest(id);
+        var post = await db.Posts.FindAsync(postId);
+        if (post is null) return Results.NotFound(id);
+        
+        post.ViewedBy.Add(user);
+
+        await db.SaveChangesAsync();
+
+        return Results.Ok();
     }
 }
