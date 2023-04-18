@@ -11,7 +11,17 @@
 <div class="netial-container netial-post" @ref="PostRoot">
     <div class="flex-column gap-2" style="width: 100%; height: 100%;">
         <div class="netial-inner-container flex-column gap-3">
-            <span>@((MarkupString)Post.Text.Replace("\r\n", "<br />"))</span>
+            @if (Post.Text.Count(c => c == '\n') > 10 && _isCollapsed) {
+                string formatedStr = string.Empty;
+                @foreach(var str in Post.Text.Split("\r\n")[..10]) {
+                    formatedStr += str + "<br />";
+                }
+                <span>@((MarkupString)formatedStr)</span>
+                <a onclick="@ExpandText" style="cursor: pointer;" class="link-primary">Развернуть</a>
+            }
+            else {
+                <span>@((MarkupString)Post.Text.Replace("\r\n", "<br />"))</span>
+            }
             @if (Post.Attachments.Any()) {
                 <MudCarousel Style="height: 25rem; width: 100%; flex-grow: 1;" Class="mud-width-full" ShowArrows="true" ShowBullets="false" EnableSwipeGesture="true" AutoCycle="false" TData="Attachment" ItemsSource="Post.Attachments">
                     <ItemTemplate>
@@ -46,6 +56,7 @@
     private Guid _currentGuid;
     private bool _isLoggedIn;
     private bool _isAlreadyViewed;
+    private bool _isCollapsed = true;
 
     private bool _isUpvotePressed;
     private bool _isDownvotePressed;
@@ -105,6 +116,11 @@
         }
         post.ViewedBy.Add(Db.Users.Find(_currentGuid));
         Db.SaveChanges();
+    }
+
+    private void ExpandText() {
+        _isCollapsed = false;
+        InvokeAsync(StateHasChanged);
     }
 
 }
