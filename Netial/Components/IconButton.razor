@@ -62,9 +62,11 @@ else {
     public event Action OnClicked;
 
     protected override Task OnParametersSetAsync() {
-        if (IsToggle)
-            OnClicked += () => Pressed = !Pressed;
         OnClicked += () => OnClick.InvokeAsync(this);
+        if (IsToggle)
+            OnClicked += () => {
+                Pressed = !Pressed;
+            };
         return base.OnParametersSetAsync();
     }
 
