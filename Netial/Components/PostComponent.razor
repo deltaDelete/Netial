@@ -11,9 +11,13 @@
 <div class="netial-container netial-post" @ref="PostRoot">
     <div class="flex-column gap-2" style="width: 100%; height: 100%;">
         <div class="netial-inner-container flex-column gap-3">
+            @if (Post is null) {
+                var db = DbFactory.CreateDbContext();
+                Post = db.Posts.Find(PostId);
+            }
             @if (Post.Text.Count(c => c == '\n') > 10 && _isCollapsed) {
                 string formatedStr = string.Empty;
-                @foreach(var str in Post.Text.Split("\r\n")[..10]) {
+                @foreach (var str in Post.Text.Split("\r\n")[..10]) {
                     formatedStr += str + "<br />";
                 }
                 <span>@((MarkupString)formatedStr)</span>
@@ -37,8 +41,8 @@
             <div>
                 <form class="flex-row flex-y-center flex-x-left gap-1" method="post" action="/posts" target="dummyframe">
                     <input type="hidden" value="@Post.Id" name="id"/>
-                    <IconButton TContent="int" Name="action" Value="upvote" Icon="arrow_upward" Content="@Post.UpvotedBy.Count" IsToggle="true" Pressed="@_isUpvotePressed" />
-                    <IconButton TContent="int" IsLink="true" Href="@($"/post/{Post.Id}")" Icon="comment" Content="@Post.Comments.Count" />
+                    <IconButton TContent="int" Name="action" Value="upvote" Icon="arrow_upward" Content="@Post.Upvotes" IsToggle="true" Pressed="@_isUpvotePressed" />
+                    <IconButton TContent="int" IsLink="true" Href="@($"/post/{Post.Id}")" Icon="comment" Content="@Post.CommentCount" />
                     <IconButton TContent="int" Name="action" Value="downvote" Icon="arrow_downward" Content="@Post.Downvotes" IsToggle="true" Pressed="@_isUpvotePressed" />
                     <IconButton TContent="int" Name="action" Value="share" Icon="share" Content="@Post.Shares" />
                     <IconButton TContent="int" Name="action" Type="button" Value="view" Icon="visibility" Content="@Post.Views" />
@@ -50,8 +54,12 @@
 </div>
 
 @code {
+
     [Parameter]
     public Post Post { get; set; }
+
+    [Parameter]
+    public Guid PostId { get; set; }
 
     private Guid _currentGuid;
     private bool _isLoggedIn;
