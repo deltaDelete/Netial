@@ -9,17 +9,21 @@
     @if (_isValidId) {
         var post = DbFactory.CreateDbContext().Posts.Find(PostId);
         <PostComponent Post="post"/>
-        <div class="flex-column netial-post p-3 flex-y-center flex-x-left" style="border-radius: var(--netial-primary-radius); background-color: var(--netial-container-bg);">
-            <form action="/comments/new/@post.Id" method="post" target="dummyframe" style="width: 100%;">
-                <p class="form-floating">
-                    <textarea maxlength="300" type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " style="background-color: var(--netial-body-bg); color: var(--netial-primary-color);"/>
-                    <label for="text">Текст</label>
-                </p>
-                <div class="flex-row gap-2" style="justify-content: end;">
-                    <Button Type="submit" Selected="true" Text="Отправить" OnClick="@(() => InvokeAsync(StateHasChanged))"/>
+        <AuthorizeView>
+            <Authorized>
+                <div class="flex-column netial-post p-3 flex-y-center flex-x-left" style="border-radius: var(--netial-primary-radius); background-color: var(--netial-container-bg);">
+                    <form action="/comments/new/@post.Id" method="post" target="dummyframe" style="width: 100%;">
+                        <p class="form-floating">
+                            <textarea maxlength="300" type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " style="background-color: var(--netial-body-bg); color: var(--netial-primary-color);"/>
+                            <label for="text">Текст</label>
+                        </p>
+                        <div class="flex-row gap-2" style="justify-content: end;">
+                            <Button Type="submit" Selected="true" Text="Отправить" OnClick="@(() => InvokeAsync(StateHasChanged))"/>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
+            </Authorized>
+        </AuthorizeView>
         <div class="flex-column flex-y-center flex-x-left" style="border-radius: var(--netial-primary-radius); background-color: var(--netial-container-bg);">
             @foreach (var comment in post.Comments) {
                 <CommentComponent Comment="comment"/>
