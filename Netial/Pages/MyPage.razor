@@ -1,0 +1,59 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Netial.Database
+@using System.Security.Claims
+
+@attribute [Authorize]
+@page "/mypage"
+
+@inject AuthenticationStateProvider AuthState
+@inject IDbContextFactory<ApplicationContext> DbFactory
+
+
+@if (CurrentUser is null) {
+    CurrentUser = FindUser();
+    if (CurrentUser is not null) {
+        <div class="flex-column flex-y-center flex-x-center gap-3">
+            <div class="flex-row flex-y-center flex-x-left gap-3 p-3 netial-post" style="border-radius: var(--netial-primary-radius); background-color: var(--netial-container-bg);">
+                <div class="avatar-circle-contrainer-10">
+                    <img src="@($"/images/users/{CurrentUser.Id}")" alt="Аватар" />
+                </div>
+                <div class="flex-column flex-y-center flex-x-left gap-1">
+                    <span class="display-6">@CurrentUser.LastName @CurrentUser.FirstName</span>
+                    <span>Дата рождения: @CurrentUser.BirthDate.ToShortDateString()</span>
+                    <span>Дата регистрации: @CurrentUser.CreationDate.ToShortDateString()</span>
+                    <span>Рейтинг: @CurrentUser.Rating</span>
+                </div>
+                <div class="flex-column flex-y-center flex-x-center gap-2" style="margin-left: auto;">
+                    <Button IsLink="true" Href="/account/edit" Text="Редактировать" Selected="true"/>
+                </div>
+            </div>
+            @foreach (var post in CurrentUser.Posts) {
+                <PostComponent Post="post" />
+            }
+        </div>
+    }
+    else {
+        <span>Что-то пошло не так</span>
+    }
+}
+
+@code {
+
+    public User CurrentUser { get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync();
+    }
+
+    User FindUser() {
+        var claims = AuthState.GetAuthenticationStateAsync().Result.User.Claims.ToDictionary(x => x.Type);
+
+        if (claims.Any()) {
+            var userId = claims[ClaimTypes.NameIdentifier].Value;
+            var userGuid = Guid.Parse(userId);
+            var db = DbFactory.CreateDbContext();
+            return db.Users.Find(userGuid);
+        }
+        return null;
+    }
+}
