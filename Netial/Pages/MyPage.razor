@@ -27,7 +27,7 @@
                     <Button IsLink="true" Href="/account/edit" Text="Редактировать" Selected="true"/>
                 </div>
             </div>
-            @foreach (var post in CurrentUser.Posts) {
+            @foreach (var post in CurrentUser.Posts.OrderByDescending(x => x.CreationDate)) {
                 <PostComponent Post="post" />
             }
         </div>
