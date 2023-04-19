@@ -45,8 +45,11 @@
     }
 
     protected override async Task OnInitializedAsync() {
-        _currentGuid = Guid.Parse(AuthState.GetAuthenticationStateAsync().Result.User.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value);
-        _isLiked = await CheckLiked();
+        var claims = AuthState.GetAuthenticationStateAsync().Result.User.Claims.ToDictionary(x => x.Type);
+        if (claims.Any()) {
+            _currentGuid = Guid.Parse(claims[ClaimTypes.NameIdentifier].Value);
+            _isLiked = await CheckLiked();
+        }
         await base.OnInitializedAsync();
     }
 
