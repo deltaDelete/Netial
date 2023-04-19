@@ -10,7 +10,7 @@ using Netial.Api;
 using Netial.Database;
 using Netial.Database.Models;
 using Netial.Helpers;
-using Netial.Models;
+using Netial.Services;
 
 internal static class Program {
     private static readonly string[] REGISTER_FIELDS = { "lastname", "firstname", "birthdate", "email", "password", "password2" };

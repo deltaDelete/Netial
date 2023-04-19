@@ -408,3 +408,14 @@ body > div.container {
 .avatar-circle-contrainer-3 img {
     height: 3rem;
 }
+
+.avatar-circle-contrainer-10 {
+    width: 10rem;
+    aspect-ratio: 1/1;
+    border-radius: 100%;
+    overflow: hidden;
+}
+
+.avatar-circle-contrainer-10 img {
+    height: 10rem;
+}
