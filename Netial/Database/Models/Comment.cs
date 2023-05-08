@@ -7,7 +7,7 @@ public class Comment {
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Text { get; set; }
-    public DateTime CreationDate { get; set; } = DateTime.Now;
+    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
     public int Likes { get; set; }
 
     // Навигационные свойства

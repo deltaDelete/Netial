@@ -9,7 +9,7 @@ public class Post {
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string? Text { get; set; }
-    public DateTime CreationDate { get; set; } = DateTime.Now;
+    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
     public int Upvotes { get; set; }
 

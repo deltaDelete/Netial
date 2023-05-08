@@ -3,7 +3,7 @@ namespace Netial.Database.Models;
 public class Chat {
     public Guid Id { get; set; }
     public string Title { get; set; }
-    public DateTime CreationDate { get; set; } = DateTime.Now;
+    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 
     // Навигационные свойства
     public virtual User Owner { get; set; }
