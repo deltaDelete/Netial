@@ -20,7 +20,7 @@ public class ApplicationContext : DbContext {
     public ApplicationContext(DbContextOptions<ApplicationContext> options, IConfiguration configuration, ILogger<ApplicationContext> logger) : this(options) {
         _configuration = configuration;
         _logger = logger;
-        _connectionString = _configuration.GetConnectionString("DefaultConnection");
+        _connectionString = _configuration.GetConnectionString("PSQL");
         Database.EnsureCreated();
         //_logger.LogInformation(Database.GenerateCreateScript());
     }
@@ -29,7 +29,7 @@ public class ApplicationContext : DbContext {
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         optionsBuilder.UseLazyLoadingProxies();
-        optionsBuilder.UseMySql(_connectionString, new MySqlServerVersion(new Version(8,0,32)));
+        optionsBuilder.UseNpgsql(_connectionString);
         optionsBuilder.UseSnakeCaseNamingConvention();
     }
 
