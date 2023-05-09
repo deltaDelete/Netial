@@ -1,37 +1,47 @@
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Netial.Database;
 using Netial.Database.Models;
 
-namespace Netial.Api; 
+namespace Netial.Api;
 
-public static class PostsController {
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class PostsController : ControllerBase {
+    private readonly ILogger<PostsController> _logger;
+    private readonly IWebHostEnvironment _environment;
+    private readonly ApplicationContext _db;
     private static Regex _matchHtmlTags = new Regex("<[^>]*>");
-    public static void ConfigurePostsApi(this WebApplication app) {
-        app.MapPost("/posts/new", NewPost);
-        app.MapPost("/posts/upvote/{id}", UpvotePost);
-        app.MapPost("/posts/downvote/{id}", DownvotePost);
-        app.MapPost("/posts/view/{id}", MarkViewedPost);
-        app.MapPost("/posts", Posts);
+    private readonly string _webRoot;
+
+    public PostsController(ILogger<PostsController> logger, IWebHostEnvironment environment, ApplicationContext db) {
+        _logger = logger;
+        _environment = environment;
+        _db = db;
+        _webRoot = environment.WebRootPath;
     }
 
-    private static async Task<IResult> Posts(HttpContext context, HttpResponse response) {
-        var form = context.Request.Form;
-        //response.Redirect($"/posts/{form["action"]}/{form["id"]}", true, true);
-        return Results.Redirect($"/posts/{form["action"]}/{form["id"]}", false, true);
+    [HttpPost("redirect")]
+    public async Task<IActionResult> Redirect([FromForm] string action, [FromForm] Guid id) {
+        return RedirectPermanentPreserveMethod($"/api/Posts/{id}/{action}");
     }
 
-    private static async Task<IResult> UpvotePost(string id, HttpContext context, ApplicationContext db) {
-        var userGuid = context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-        if (string.IsNullOrEmpty(userGuid)) return Results.Unauthorized();
+    [HttpPost("{id:guid}/upvote")]
+    public async Task<IActionResult> UpvotePost([FromRoute] Guid id) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Unauthorized();
 
-        var post = await db.Posts.FindAsync(Guid.Parse(id));
-        if (post is null) return Results.NotFound(id);
-        
-        var users = db.Users
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) return NotFound(id);
+
+        var users = _db.Users
             .Include(u => u.UpvotedPosts);
-            
+
         var user = users.First(u => u.Id == Guid.Parse(userGuid));
 
         if (user.UpvotedPosts.Any(x => x == post)) {
@@ -41,18 +51,20 @@ public static class PostsController {
             user.UpvotedPosts.Add(post);
         }
 
-        await db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
-        return Results.Ok();
+        return Ok();
     }
-    private static async Task<IResult> DownvotePost(string id, HttpContext context, ApplicationContext db) {
-        var userGuid = context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-        if (string.IsNullOrEmpty(userGuid)) return Results.Unauthorized();
 
-        var post = await db.Posts.FindAsync(Guid.Parse(id));
-        if (post is null) return Results.NotFound(id);
+    [HttpPost("{id:guid}/downvote")]
+    public async Task<IActionResult> DownvotePost([FromRoute] Guid id) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Unauthorized();
 
-        var users = db.Users
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) return NotFound(id);
+
+        var users = _db.Users
             .Include(u => u.DownvotedPosts);
         var user = users.First(u => u.Id == Guid.Parse(userGuid));
 
@@ -63,52 +75,89 @@ public static class PostsController {
             user.DownvotedPosts.Add(post);
         }
 
-        await db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
-        return Results.Ok();
+        return Ok();
     }
 
-    private static async Task<IResult> NewPost(HttpContext context, ApplicationContext db) {
-        var form = context.Request.Form;
-
-        if (!Guid.TryParse(form["author"], out Guid authorId)) {
-            return Results.BadRequest(form["author"]);
-        }
-
-        var user = await db.Users.FindAsync(authorId);
+    [HttpPost]
+    public async Task<IActionResult> NewPostFromForm(
+        [FromForm(Name = "author")] Guid authorId,
+        [FromForm(Name = "text")] string text, 
+        [FromForm] IFormFileCollection files) {
+        var user = await _db.Users.FindAsync(authorId);
         if (user is null) {
-            return Results.NotFound(authorId);
+            return NotFound(authorId);
         }
-        
-        string text = form["text"];
 
-        await db.Posts.AddAsync(new Post() {
+        var attachments = await UploadMultipleAttachmentsAsync(files);
+
+        await _db.Posts.AddAsync(new Post() {
             Author = user,
-            Text = _matchHtmlTags.Replace(text, "")
+            Text = _matchHtmlTags.Replace(text, ""),
+            Attachments = attachments
         });
 
-        await db.SaveChangesAsync();
-        
-        return Results.Ok();
+        await _db.SaveChangesAsync();
+
+        return Ok();
     }
 
-    private static async Task<IResult> MarkViewedPost(string id, HttpContext context, ApplicationContext db) {
-        var userGuid = context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
-        if (string.IsNullOrEmpty(userGuid)) return Results.Unauthorized();
-
-        var user = await db.Users.FindAsync(Guid.Parse(userGuid));
-        if (user is null) {
-            return Results.Unauthorized();
+    [NonAction]
+    public async Task<ICollection<Attachment>> UploadMultipleAttachmentsAsync(IEnumerable<IFormFile> files) {
+        var attachments = new List<Attachment>();
+        foreach (var file in files) {
+            attachments.Add(await UploadAttachmentAsync(file));
         }
 
-        if (!Guid.TryParse(id, out Guid postId)) return Results.BadRequest(id);
-        var post = await db.Posts.FindAsync(postId);
-        if (post is null) return Results.NotFound(id);
-        
+        return attachments;
+    }
+
+    [NonAction]
+    public async Task<Attachment> UploadAttachmentAsync(IFormFile file) {
+        var guid = Guid.NewGuid();
+        using var fs = System.IO.File.Create($"{_webRoot}/images/attachments/{guid}.jpg");
+        await file.CopyToAsync(fs);
+        var attachment = new Attachment() {
+            Id = guid,
+            Description = "Картинка"
+        };
+        return attachment;
+    }
+
+    [HttpPost("{id:guid}/view")]
+    public async Task<IActionResult> MarkViewedPost([FromRoute] Guid id) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Unauthorized();
+
+        var user = await _db.Users.FindAsync(Guid.Parse(userGuid));
+        if (user is null) {
+            return Unauthorized();
+        }
+
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) return NotFound(id);
+
         post.ViewedBy.Add(user);
 
-        await db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
-        return Results.Ok();
+        return Ok();
+    }
+
+    [HttpPost("attachments")]
+    public async Task<IActionResult> NewAttachment([FromForm] UploadModel model) {
+        var attachment = await UploadAttachmentAsync(model.File);
+        _db.Attachments.Add(attachment);
+        await _db.SaveChangesAsync();
+        return Ok(attachment);
+    }
+    
+    public class UploadModel
+    {
+        //Other inputs
+        [Required]
+        [DataType(DataType.Upload)]
+        public IFormFile File { get; set; }
     }
 }
