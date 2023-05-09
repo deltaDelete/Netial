@@ -12,7 +12,7 @@
         <AuthorizeView>
             <Authorized>
                 <div class="flex-column netial-post p-3 flex-y-center flex-x-left" style="border-radius: var(--netial-primary-radius); background-color: var(--netial-container-bg);">
-                    <form action="/comments/new/@post.Id" method="post" target="dummyframe" style="width: 100%;">
+                    <form action="/api/posts/@post.Id/comments" method="post" target="dummyframe" style="width: 100%;">
                         <p class="form-floating">
                             <textarea maxlength="300" type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " style="background-color: var(--netial-body-bg); color: var(--netial-primary-color);"/>
                             <label for="text">Текст</label>

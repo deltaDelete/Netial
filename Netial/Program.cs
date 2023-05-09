@@ -40,8 +40,6 @@ internal static class Program {
         app.MapPost("/account/register", Register);
         app.MapGet("/images/users/{id}", GetUserImage);
         app.MapGet("/images/attachments/{id}", GetAttachmentImage);
-
-        app.ConfigureCommentsApi();
     }
 
     private static void ConfigureApplication(this WebApplication app) {
