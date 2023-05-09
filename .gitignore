@@ -455,3 +455,7 @@ $RECYCLE.BIN/
 
 # Entity Framework migrations
 Migrations
+
+/Netial/wwwroot/images/users
+/Netial/wwwroot/images/attachments
+!/Netial/wwwroot/images/users/!blank.jpg
