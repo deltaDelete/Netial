@@ -4,13 +4,16 @@
 @attribute [Authorize]
 @inject AuthenticationStateProvider AuthState
 @inject ApplicationContext Db
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavManager
+@inject ILogger<NewPostDialog> Logger
 
 <MudDialog Class="netial-border-3 p-2" Style="width: 80vw;">
     <TitleContent>
         Новый пост
     </TitleContent>
     <DialogContent>
-        <form action="/posts/new" method="post" target="dummyframe" name="newpost">
+        <form action="/api/posts" method="post" target="dummyframe" name="newpost">
             <input type="hidden" value="@_post.Author.Id" required="required" id="author" name="author"/>
             <p class="form-floating">
                 <textarea type="text" wrap="soft" required="required" id="text" name="text" class="input form-control" placeholder=" " @bind="@_post.Text" style="background-color: var(--netial-body-bg); color: var(--netial-primary-color);"/>
@@ -18,10 +21,17 @@
             </p>
             <div class="flex-row gap-2">
                 <Button Type="button" Selected="false" Text="Отмена" OnClick="Cancel"/>
-                <Button Type="submit" Selected="true" Text="Опубликовать" OnClick="Submit"/>
+                <Button Type="button" Selected="true" Text="Опубликовать" OnClick="Submit"/>
             </div>
             <MudFileUpload T="IReadOnlyList<IBrowserFile>" OnFilesChanged="OnInputFileChanged"
+                           @bind-Files="Files"
+                           @ref="FileUpload"
                            Hidden="false"
+                           Validation="ValidateFiles"
+                           MaximumFileCount="10"
+                           name="files"
+                           id="files"
+                           type="file"
                            Class="flex-1"
                            InputClass="absolute mud-width-full mud-height-full overflow-hidden z-20"
                            InputStyle="opacity:0"
@@ -50,6 +60,9 @@
     [CascadingParameter]
     public MudDialogInstance MudDialog { get; set; }
 
+    public MudFileUpload<IReadOnlyList<IBrowserFile>> FileUpload { get; set; }
+    public IReadOnlyList<IBrowserFile> Files { get; set; }
+
     protected override async void OnInitialized() {
         var state = await AuthState.GetAuthenticationStateAsync();
         var claims = state.User.Claims.ToDictionary(x => x.Type);
@@ -65,12 +78,40 @@
         MudDialog.Cancel();
     }
 
-    private void Submit() {
+    private async Task Submit() {
+        if (FileUpload.ValidationErrors.Any()) {
+            foreach (var fileUploadValidationError in FileUpload.ValidationErrors) {
+                Logger.LogWarning(fileUploadValidationError);
+            }
+            return;
+        }
+        
+        
+        var handler = new HttpClientHandler();
+        handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+        handler.ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true;
+
+        var client = new HttpClient(handler);
+        client.Timeout = TimeSpan.FromMinutes(5);
+        client.BaseAddress = new Uri(NavManager.BaseUri);
+        var request = new HttpRequestMessage(HttpMethod.Post, "api/Posts");
+        var content = new MultipartFormDataContent();
+        content.Add(new StringContent(_post.Text), "text");
+        content.Add(new StringContent(_post.Author.Id.ToString()), "author");
+
+        foreach (var file in Files) {
+            var imageFile = await file.RequestImageFileAsync("image/jpg", 736, 400);
+            content.Add(new StreamContent(imageFile.OpenReadStream(10240000L)), "files", file.Name);
+        }
+        
+        request.Content = content;
+        await client.SendAsync(request);
         MudDialog.Close(DialogResult.Ok(_post.Id));
     }
 
     private void OnInputFileChanged(InputFileChangeEventArgs e) {
         ClearDragClass();
+        _fileNames.Clear();
         var files = e.GetMultipleFiles();
         foreach (var file in files)
         {
@@ -86,4 +127,11 @@
         _dragClass = DefaultDragClass;
     }
 
+    private bool ValidateFiles(IReadOnlyList<IBrowserFile> files) {
+        bool result = true;
+        foreach (var file in files) {
+            result &= file.Size <= 10240000L;
+        }
+        return result;
+    }
 }
