@@ -27,7 +27,7 @@
                 <span>@((MarkupString)Post.Text.Replace("\r\n", "<br />"))</span>
             }
             @if (Post.Attachments.Any()) {
-                <MudCarousel Style="height: 25rem; width: 100%; flex-grow: 1;" Class="mud-width-full" ShowArrows="true" ShowBullets="false" EnableSwipeGesture="true" AutoCycle="false" TData="Attachment" ItemsSource="Post.Attachments">
+                <MudCarousel Style="height: 25rem; width: 100%; flex-grow: 1;" Class="mud-width-full" ShowArrows="@(Post.Attachments.Count > 1)" ShowBullets="false" EnableSwipeGesture="true" AutoCycle="false" TData="Attachment" ItemsSource="Post.Attachments">
                     <ItemTemplate>
                         <a href="@(context.Link)" title="Открыть полностью">
                             <MudImage ObjectFit="ObjectFit.Contain" ObjectPosition="ObjectPosition.Center" Style="height: 25rem; width: 100%;" Src="@context.Link"/>
@@ -39,11 +39,11 @@
         <span style="align-self: end;">@Post.CreationDate</span>
         <div class="flex-row flex-y-center gap-2" style="justify-content: space-between;">
             <div>
-                <form class="flex-row flex-y-center flex-x-left gap-1" method="post" action="/posts" target="dummyframe">
+                <form class="flex-row flex-y-center flex-x-left gap-1" method="post" action="/api/posts/redirect" target="dummyframe">
                     <input type="hidden" value="@Post.Id" name="id"/>
                     <IconButton TContent="int" Name="action" Value="upvote" Icon="arrow_upward" Content="@Post.Upvotes" IsToggle="true" Pressed="@_isUpvotePressed" />
                     <IconButton TContent="int" IsLink="true" Href="@($"/post/{Post.Id}")" Icon="comment" Content="@Post.CommentCount" />
-                    <IconButton TContent="int" Name="action" Value="downvote" Icon="arrow_downward" Content="@Post.Downvotes" IsToggle="true" Pressed="@_isUpvotePressed" />
+                    <IconButton TContent="int" Name="action" Value="downvote" Icon="arrow_downward" Content="@Post.Downvotes" IsToggle="true" Pressed="@_isDownvotePressed" />
                     <IconButton TContent="int" Name="action" Value="share" Icon="share" Content="@Post.Shares" />
                     <IconButton TContent="int" Name="action" Type="button" Value="view" Icon="visibility" Content="@Post.Views" />
                 </form>

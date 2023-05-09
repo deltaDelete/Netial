@@ -4,6 +4,7 @@ using System.Text;
 using Ljbc1994.Blazor.IntersectionObserver;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Netial.Api;
@@ -13,7 +14,9 @@ using Netial.Helpers;
 using Netial.Services;
 
 internal static class Program {
-    private static readonly string[] REGISTER_FIELDS = { "lastname", "firstname", "birthdate", "email", "password", "password2" };
+    private static readonly string[] REGISTER_FIELDS =
+        { "lastname", "firstname", "birthdate", "email", "password", "password2" };
+
     public static void Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -27,8 +30,6 @@ internal static class Program {
         app.ConfigureMinimalApi();
 
         app.Run();
-
-
     }
 
     private static void ConfigureMinimalApi(this WebApplication app) {
@@ -40,7 +41,6 @@ internal static class Program {
         app.MapGet("/images/users/{id}", GetUserImage);
         app.MapGet("/images/attachments/{id}", GetAttachmentImage);
 
-        app.ConfigurePostsApi();
         app.ConfigureCommentsApi();
     }
 
@@ -59,14 +59,16 @@ internal static class Program {
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
-        
+
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
 
-        #if DEBUG
-        app.UseSwagger();
-        app.UseSwaggerUI(options => { options.RoutePrefix = "/swagger"; });
-        #endif
+        app.MapControllers();
+
+        if (app.Environment.IsDevelopment()) {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
     }
 
     private static void ConfigureServices(this IServiceCollection services) {
@@ -78,17 +80,18 @@ internal static class Program {
         services.AddOptions();
         services.AddMudServices();
         services.AddIntersectionObserver();
-        
+
         services.AddAuthorization();
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options => options.LoginPath = "/login");
 
-        #if DEBUG
+        services.AddHttpClient();
+        services.AddControllers();
+
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
-        #endif
     }
-    
+
     private static async Task<IResult> Register(string? returnUrl, HttpContext context, ApplicationContext db) {
         var form = context.Request.Form;
 
@@ -108,6 +111,7 @@ internal static class Program {
         if (missingKeys.Any()) {
             return Results.BadRequest(missingKeys);
         }
+
         if (emptyKeys.Any()) {
             return Results.BadRequest(missingKeys);
         }
@@ -163,14 +167,15 @@ internal static class Program {
 
         var emailNormalized = email.ToUpper();
         var query = db.Users.AsEnumerable()
-            .Where(u => u.EmailNormalized == emailNormalized && u.PasswordHash == Cryptography.Sha256Hash(password + u.PasswordSalt));
+            .Where(u => u.EmailNormalized == emailNormalized &&
+                        u.PasswordHash == Cryptography.Sha256Hash(password + u.PasswordSalt));
 
         if (!query.Any()) {
             return Results.Redirect("/account/login?invalid");
         }
 
         var user = query.ElementAt(0);
-        
+
         // заполняем Claim'ы чтобы по ним получать информацию о текущем пользователе
         var claims = new List<Claim> {
             new Claim(ClaimTypes.Name, user.FirstName),
@@ -182,7 +187,8 @@ internal static class Program {
         // создаем объект ClaimsIdentity
         ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, "Cookies");
         // установка аутентификационных куки
-        await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity));
         return Results.Redirect(returnUrl ?? "/");
     }
 
@@ -198,12 +204,13 @@ internal static class Program {
 
         return Results.Text(Cryptography.Sha256Hash(passwd + salt));
     }
-    
+
     private static IResult GetUserImage(string id, IWebHostEnvironment env) {
         var fileinfo = env.WebRootFileProvider.GetFileInfo($"images/users/{id}.jpg");
         if (!fileinfo.Exists) {
             return Results.File(env.WebRootFileProvider.GetFileInfo("images/users/blank.png").CreateReadStream());
         }
+
         return Results.File(fileinfo.CreateReadStream());
     }
 
@@ -212,6 +219,7 @@ internal static class Program {
         if (!fileinfo.Exists) {
             return Results.File(env.WebRootFileProvider.GetFileInfo("images/unavailable.png").CreateReadStream());
         }
-        return Results.File(fileinfo.CreateReadStream());
+
+        return Results.File(fileinfo.CreateReadStream(), fileDownloadName: fileinfo.Name);
     }
 }
