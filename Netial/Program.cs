@@ -220,6 +220,6 @@ internal static class Program {
             return Results.File(env.WebRootFileProvider.GetFileInfo("images/unavailable.png").CreateReadStream());
         }
 
-        return Results.File(fileinfo.CreateReadStream());
+        return Results.File(fileinfo.CreateReadStream(), fileDownloadName: fileinfo.Name);
     }
 }
