@@ -58,6 +58,7 @@ internal static class Program {
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
 
