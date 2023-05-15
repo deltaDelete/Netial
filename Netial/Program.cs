@@ -85,6 +85,10 @@ internal static class Program {
             .AddCookie(options => options.LoginPath = "/login");
 
         services.AddHttpClient();
+        services.AddHttpClient("Post")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() {
+                ServerCertificateCustomValidationCallback = (x,y,z,w) => true
+            });
         services.AddControllers();
 
         services.AddEndpointsApiExplorer();
