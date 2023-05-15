@@ -90,13 +90,16 @@ public class PostsController : ControllerBase {
             return NotFound(authorId);
         }
 
-        var attachments = await UploadMultipleAttachmentsAsync(files);
-
-        await _db.Posts.AddAsync(new Post() {
+        var post = new Post {
             Author = user,
-            Text = _matchHtmlTags.Replace(text, ""),
-            Attachments = attachments
-        });
+            Text = _matchHtmlTags.Replace(text, "")
+        };
+        
+        if (files is not null) { 
+            post.Attachments = await UploadMultipleAttachmentsAsync(files);
+        }
+
+        await _db.Posts.AddAsync(post);
 
         await _db.SaveChangesAsync();
 
