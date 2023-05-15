@@ -14,7 +14,7 @@
     <div style="margin-left: auto; align-self: center">
         <AuthorizeView>
             <Authorized>
-                <form action="/comments/like/@Comment.Id" method="post" target="dummyframe">
+                <form action="/api/comments/@Comment.Id/like" method="post" target="dummyframe">
                     <IconButton TContent="int" Name="action" Value="like" Icon="favorite" Content="Comment.Likes" Pressed="_isLiked" IsToggle="true" OnClick="IncreaseValue"/>
                 </form>
             </Authorized>
