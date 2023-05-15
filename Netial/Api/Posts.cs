@@ -84,7 +84,7 @@ public class PostsController : ControllerBase {
     public async Task<IActionResult> NewPostFromForm(
         [FromForm(Name = "author")] Guid authorId,
         [FromForm(Name = "text")] string text, 
-        [FromForm] IFormFileCollection files) {
+        [FromForm] IFormFileCollection? files) {
         var user = await _db.Users.FindAsync(authorId);
         if (user is null) {
             return NotFound(authorId);
