@@ -82,4 +82,17 @@ public class CommentsController : ControllerBase {
         _logger.LogInformation($"Комментарий {id} добавлен в понравившиеся пользователя {userGuid}");
         return Ok($"Комментарий {id} успешно добавлен в понравившиеся");
     }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetComment([FromRoute] Guid id) {
+        Comment? comment = await _db.Comments
+            .Include(x => x.Author)
+            .Include(x => x.Post)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (comment is null) {
+            return NotFound(id);
+        }
+
+        return Ok(comment);
+    }
 }
