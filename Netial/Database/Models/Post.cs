@@ -33,7 +33,7 @@ public class Post {
     // Навигационные свойства
     [JsonInclude]
     public virtual User Author { get; set; }
-    [JsonIgnore]
+    [JsonInclude]
     public virtual ICollection<Attachment> Attachments { get; set; }
     [JsonIgnore]
     public virtual ICollection<Comment> Comments { get; set; }
