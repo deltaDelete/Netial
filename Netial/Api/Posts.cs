@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
@@ -154,6 +155,32 @@ public class PostsController : ControllerBase {
         _db.Attachments.Add(attachment);
         await _db.SaveChangesAsync();
         return Ok(attachment);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPosts() {
+        var posts = await _db.Posts.OrderByDescending(x => x.CreationDate).ToListAsync();
+        return Ok(posts);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetPost([FromRoute] Guid id) {
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) {
+            return NotFound(id);
+        }
+
+        return Ok(post);
+    }
+
+    [HttpGet("{id:guid}/attachements")]
+    public async Task<IActionResult> GetPostAttachments([FromRoute] Guid id) {
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) {
+            return NotFound(id);
+        }
+
+        return Ok(post.Attachments);
     }
     
     public class UploadModel
