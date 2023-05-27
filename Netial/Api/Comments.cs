@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,14 +16,16 @@ public class CommentsController : ControllerBase {
     private static Regex _matchHtmlTags = new Regex("<[^>]*>");
     private readonly ILogger<PostsController> _logger;
     private readonly ApplicationContext _db;
+    private JsonSerializerOptions _jsonSerializerOptions;
 
     public CommentsController(ILogger<PostsController> logger, ApplicationContext db) {
         _logger = logger;
         _db = db;
+        _jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
     }
 
     [HttpPost("/api/posts/{postId:guid}/comments")]
-    public async Task<IActionResult> NewComment([FromRoute] Guid postId, [FromForm] string text) {
+    public async Task<IActionResult> NewComment([FromRoute] Guid postId, [FromBody] string text) {
         var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         if (string.IsNullOrEmpty(userGuid)) {
             return Unauthorized();
@@ -42,18 +45,36 @@ public class CommentsController : ControllerBase {
             return NotFound($"Не найден пост с идентификатором {postId}");
         }
 
-        await _db.Comments.AddAsync(new Comment() {
+        var comment = new Comment() {
             Author = user,
             Text = _matchHtmlTags.Replace(text, ""),
             Post = post
-        });
+        };
+        
+        await _db.Comments.AddAsync(comment);
 
         await _db.SaveChangesAsync();
         
-        return Ok();
+        return FixedOk(comment);
+    }
+    
+    private ContentResult FixedOk<T>(T obj)
+    {
+        return Content(JsonSerializer.Serialize(obj, _jsonSerializerOptions), "application/json");
     }
 
-    [HttpPost("comments/{id:guid}/like")]
+    [HttpGet("/api/posts/{postId:guid}/comments")]
+    public async Task<IActionResult> GetComments([FromRoute] Guid postId) {
+        var post = await _db.Posts.FindAsync(postId);
+        if (post is null) {
+            return NotFound(postId);
+        }
+
+        var comments = post.Comments.OrderByDescending(x => x.CreationDate);
+        return Ok(comments);
+    }
+
+    [HttpPost("{id:guid}/like")]
     public async Task<IActionResult> LikeComment([FromRoute] Guid id) {
         var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
         if (string.IsNullOrEmpty(userGuid)) {
@@ -64,23 +85,21 @@ public class CommentsController : ControllerBase {
         if (comment is null) {
             return NotFound(id);
         }
-        
-        var users = _db.Users
-            .Include(u => u.LikedComments);
-            
-        var user = users.First(u => u.Id == Guid.Parse(userGuid));
 
-        if (user.LikedComments.Any(x => x == comment)) {
-            user.LikedComments.Remove(comment);
+        var user = await _db.Users.FindAsync(Guid.Parse(userGuid));
+        var isLiked = comment.LikedBy.Contains(user);
+
+        if (isLiked) {
+            comment.LikedBy.Remove(user);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Комментарий {id} удален из понравившихся пользователя {userGuid}");
-            return Ok($"Комментарий {id} успешно удален из понравившихся");
+            return Ok(false);
         }
 
-        user.LikedComments.Add(comment);
+        comment.LikedBy.Add(user);
         await _db.SaveChangesAsync();
         _logger.LogInformation($"Комментарий {id} добавлен в понравившиеся пользователя {userGuid}");
-        return Ok($"Комментарий {id} успешно добавлен в понравившиеся");
+        return Ok(true);
     }
 
     [HttpGet("{id:guid}")]
@@ -95,4 +114,17 @@ public class CommentsController : ControllerBase {
 
         return Ok(comment);
     }
+    
+    [HttpGet("{id:guid}/like")]
+    public async Task<IActionResult> GetLiked([FromRoute] Guid id) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Unauthorized();
+
+        var comment = await _db.Comments.FindAsync(id);
+        if (comment is null) return NotFound(id);
+
+        var isLiked = comment.LikedBy.Any(x => x.Id == Guid.Parse(userGuid));
+        return Ok(isLiked);
+    }
+
 }
