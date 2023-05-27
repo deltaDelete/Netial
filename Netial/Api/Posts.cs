@@ -45,16 +45,19 @@ public class PostsController : ControllerBase {
 
         var user = users.First(u => u.Id == Guid.Parse(userGuid));
 
+        bool isUpvoted = false;
         if (user.UpvotedPosts.Any(x => x == post)) {
             user.UpvotedPosts.Remove(post);
+            isUpvoted = false;
         }
         else {
             user.UpvotedPosts.Add(post);
+            isUpvoted = true;
         }
 
         await _db.SaveChangesAsync();
 
-        return Ok();
+        return Ok(isUpvoted);
     }
 
     [HttpPost("{id:guid}/downvote")]
@@ -69,16 +72,43 @@ public class PostsController : ControllerBase {
             .Include(u => u.DownvotedPosts);
         var user = users.First(u => u.Id == Guid.Parse(userGuid));
 
+        bool isDownvoted;
         if (user.DownvotedPosts.Any(x => x == post)) {
             user.DownvotedPosts.Remove(post);
+            isDownvoted = false;
         }
         else {
             user.DownvotedPosts.Add(post);
+            isDownvoted = true;
         }
 
         await _db.SaveChangesAsync();
 
-        return Ok();
+        return Ok(isDownvoted);
+    }
+
+    [HttpGet("{id:guid}/upvote")]
+    public async Task<IActionResult> IsUpvoted([FromRoute] Guid id) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Unauthorized();
+
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) return NotFound(id);
+
+        var isUpvoted = post.UpvotedBy.Any(x => x.Id == Guid.Parse(userGuid));
+        return Ok(isUpvoted);
+    }
+    
+    [HttpGet("{id:guid}/downvote")]
+    public async Task<IActionResult> IsDownvoted([FromRoute] Guid id) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (string.IsNullOrEmpty(userGuid)) return Unauthorized();
+
+        var post = await _db.Posts.FindAsync(id);
+        if (post is null) return NotFound(id);
+
+        var isDownvoted = post.DownvotedBy.Any(x => x.Id == Guid.Parse(userGuid));
+        return Ok(isDownvoted);
     }
 
     [HttpPost]
@@ -158,9 +188,23 @@ public class PostsController : ControllerBase {
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPosts() {
+    public async Task<IActionResult> GetPosts([FromQuery] PostSort? sort = PostSort.New) {
+        if (sort == PostSort.Hot) {
+            return Ok(await PostsByUpvotes());
+        }
+        return Ok(await Posts());
+    }
+
+    private async Task<IEnumerable<Post>> PostsByUpvotes() {
+        var posts = await _db.Posts.Where(x => x.CreationDate.Day > DateTime.Today.Day - 7)
+            .OrderByDescending(x => x.Upvotes)
+            .ToListAsync();
+        return posts;
+    }
+    
+    private async Task<IEnumerable<Post>> Posts() {
         var posts = await _db.Posts.OrderByDescending(x => x.CreationDate).ToListAsync();
-        return Ok(posts);
+        return posts;
     }
 
     [HttpGet("{id:guid}")]
@@ -189,5 +233,10 @@ public class PostsController : ControllerBase {
         [Required]
         [DataType(DataType.Upload)]
         public IFormFile File { get; set; }
+    }
+
+    public enum PostSort {
+        New,
+        Hot
     }
 }
