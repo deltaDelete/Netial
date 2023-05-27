@@ -19,7 +19,7 @@ public class Comment {
     // Навигационные свойства
     [JsonInclude]
     public virtual User Author { get; set; }
-    [JsonInclude]
+    [JsonIgnore]
     public virtual Post Post { get; set; }
     [JsonIgnore]
     public virtual ICollection<User> LikedBy { get; set; }
