@@ -50,7 +50,7 @@ internal static class Program {
             app.UseHsts();
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
 
         app.UseStaticFiles();
 
@@ -58,15 +58,27 @@ internal static class Program {
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseCors(options => 
-            options
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowAnyOrigin()
-                .AllowCredentials()
-        );
+        // app.UseCors(options => 
+        //     options
+        //         .AllowAnyHeader()
+        //         .AllowAnyMethod()
+        //         .AllowAnyOrigin()
+        //         // .WithOrigins(
+        //         //     "http://localhost:3000",
+        //         //     "http://127.0.0.1:3000",
+        //         //     "http://[::1]:3000",
+        //         //     "http://localhost:80", 
+        //         //     "http://127.0.0.1:80", 
+        //         //     "http://[::1]:80",
+        //         //     "http://localhost:5114", 
+        //         //     "http://127.0.0.1:5114", 
+        //         //     "http://[::1]:5114"
+        //         //     )
+        //         .AllowCredentials()
+        // );
         app.MapBlazorHub();
         app.MapFallbackToPage("/_Host");
+        // app.MapFallbackToController(pattern: "/api/*", controller: "Fallback", action: "Index");
 
         app.MapControllers();
 

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
@@ -15,13 +16,10 @@ namespace Netial.Api;
 public class Auth : ControllerBase {
     private readonly ILogger<PostsController> _logger;
     private readonly ApplicationContext _db;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public Auth(ILogger<PostsController> logger, ApplicationContext db) {
         _logger = logger;
         _db = db;
-        
-        _jsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
     }
 
     [HttpPost("login")]
@@ -57,22 +55,65 @@ public class Auth : ControllerBase {
         // установка аутентификационных куки
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(claimsIdentity));
-        return FixedOk(user);
+        return this.FixedOk(user);
     }
     
-    private ContentResult FixedOk<T>(T obj)
-    {
-        return Content(JsonSerializer.Serialize(obj, _jsonSerializerOptions), "application/json");
-    }
-
     [HttpPost("logout")]
     public async Task<IActionResult> LogOut() {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Ok();
     }
+    
+    public async Task<IActionResult> Register([FromBody] RegisterBody body) {
+        string lastname = body.LastName;
+        string firstname = body.FirstName;
+        DateTime birthDate = body.BirthDate;
+        string email = body.Email;
+        string emailNormalized = email.ToUpper();
+        string password = body.Password;
+        string password2 = body.PasswordConfirm;
+        if (password != password2) {
+            return BadRequest("{\"error\": \"passwords do not match\"}");
+        }
+
+        if (_db.Users.Any(u => u.EmailNormalized == emailNormalized)) {
+            return Conflict("{\"error\": \"user with provided email already exists\"}");
+        }
+
+        string passwordSalt = Guid.NewGuid().ToString().Split('-')[0];
+        string passwordHash = Cryptography.Sha256Hash(password + passwordSalt);
+
+        var user = new User() {
+            Email = email,
+            EmailNormalized = emailNormalized,
+            FirstName = firstname,
+            LastName = lastname,
+            PasswordHash = passwordHash,
+            PasswordSalt = passwordSalt,
+            Rating = 0,
+            BirthDate = birthDate
+        };
+
+        var addedUser = await _db.Users.AddAsync(user);
+        await _db.SaveChangesAsync();
+
+        return this.FixedOk(addedUser.Entity);
+    }
 
     public class LoginBody {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+    }
+
+    public class RegisterBody {
+        public string LastName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public DateTime BirthDate { get; set; }
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+        [MinLength(8)]
+        public string PasswordConfirm { get; set; } = string.Empty;
     }
 }

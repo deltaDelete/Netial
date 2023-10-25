@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Netial.Helpers;
 using Netial.Database;
 using Netial.Database.Models;
 
@@ -19,11 +20,13 @@ public class PostsController : ControllerBase {
     private readonly ApplicationContext _db;
     private static Regex _matchHtmlTags = new Regex("<[^>]*>");
     private readonly string _webRoot;
+    private readonly IDbContextFactory<ApplicationContext> _dbContextFactory;
 
-    public PostsController(ILogger<PostsController> logger, IWebHostEnvironment environment, ApplicationContext db) {
+    public PostsController(ILogger<PostsController> logger, IWebHostEnvironment environment, IDbContextFactory<ApplicationContext> dbContextFactory) {
         _logger = logger;
         _environment = environment;
-        _db = db;
+        _dbContextFactory = dbContextFactory;
+        _db = dbContextFactory.CreateDbContext();
         _webRoot = environment.WebRootPath;
     }
 
@@ -98,7 +101,16 @@ public class PostsController : ControllerBase {
         var isUpvoted = post.UpvotedBy.Any(x => x.Id == Guid.Parse(userGuid));
         return Ok(isUpvoted);
     }
-    
+
+    [HttpPost("attachments")]
+    public async Task<IActionResult> PostAttachments([FromForm] IFormFileCollection files) {
+        var attachments = await UploadMultipleAttachmentsAsync(files);
+        var db = await _dbContextFactory.CreateDbContextAsync();
+        db.Attachments.AddRange(attachments);
+        await db.SaveChangesAsync();
+        return this.FixedOk(attachments);
+    }
+
     [HttpGet("{id:guid}/downvote")]
     public async Task<IActionResult> IsDownvoted([FromRoute] Guid id) {
         var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
@@ -112,29 +124,37 @@ public class PostsController : ControllerBase {
     }
 
     [HttpPost]
-    public async Task<IActionResult> NewPostFromForm(
-        [FromForm(Name = "author")] Guid authorId,
-        [FromForm(Name = "text")] string text, 
-        [FromForm] IFormFileCollection? files) {
-        var user = await _db.Users.FindAsync(authorId);
+    public async Task<IActionResult> NewPost([FromBody] PostBody body) {
+        var userGuid = HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        var authorId = Guid.Parse(userGuid);
+        var db = await _dbContextFactory.CreateDbContextAsync();
+        var user = await db.Users.FindAsync(authorId);
         if (user is null) {
             return NotFound(authorId);
         }
 
         var post = new Post {
             Author = user,
-            Text = _matchHtmlTags.Replace(text, "")
+            Text = _matchHtmlTags.Replace(body.Text, "")
         };
-        
-        if (files is not null) { 
-            post.Attachments = await UploadMultipleAttachmentsAsync(files);
+
+
+        await db.Posts.AddAsync(post);
+        await db.SaveChangesAsync();
+
+        if (body.Attachments is not null && body.Attachments.Any()) {
+            var attachments = db.Attachments.Where(x => body.Attachments.Contains(x)).Select(x=> x.Id).ToListAsync();
+            var postFound = await db.Posts.Include(x => x.Attachments).FirstAsync(x => x.Id == post.Id);
+            foreach (var attachment in await attachments) {
+                var attachmentFound = await _db.Attachments.FindAsync(attachment);
+                if (attachmentFound is not null) {
+                    postFound.Attachments.Add(attachmentFound);
+                }
+            }
         }
+        await db.SaveChangesAsync();
 
-        await _db.Posts.AddAsync(post);
-
-        await _db.SaveChangesAsync();
-
-        return Ok();
+        return this.FixedOk(post);
     }
 
     [NonAction]
@@ -179,32 +199,39 @@ public class PostsController : ControllerBase {
         return Ok();
     }
 
-    [HttpPost("attachments")]
+    [HttpPost("attachment")]
     public async Task<IActionResult> NewAttachment([FromForm] UploadModel model) {
         var attachment = await UploadAttachmentAsync(model.File);
         _db.Attachments.Add(attachment);
         await _db.SaveChangesAsync();
-        return Ok(attachment);
+        return this.FixedOk(attachment);
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetPosts([FromQuery] PostSort? sort = PostSort.New) {
+    public async Task<IActionResult> GetPosts([FromQuery] CollectionSettings? settings = null,
+        [FromQuery] PostSort? sort = PostSort.New) {
+        settings ??= new CollectionSettings() { Take = 10 };
         if (sort == PostSort.Hot) {
-            return Ok(await PostsByUpvotes());
+            return Ok(await PostsByUpvotes(settings));
         }
-        return Ok(await Posts());
+
+        return Ok(await Posts(settings));
     }
 
-    private async Task<IEnumerable<Post>> PostsByUpvotes() {
-        var posts = await _db.Posts.Where(x => x.CreationDate.Day > DateTime.Today.Day - 7)
+    private async Task<IEnumerable<Post>> PostsByUpvotes(CollectionSettings settings) {
+        var posts = _db.Posts.Where(x => x.CreationDate.Day > DateTime.Today.Day - 7)
             .OrderByDescending(x => x.Upvotes)
-            .ToListAsync();
-        return posts;
+            .Skip(settings.Skip!.Value)
+            .Take(settings.Take);
+        return await posts.ToListAsync();
     }
-    
-    private async Task<IEnumerable<Post>> Posts() {
-        var posts = await _db.Posts.OrderByDescending(x => x.CreationDate).ToListAsync();
-        return posts;
+
+    private async Task<IEnumerable<Post>> Posts(CollectionSettings settings) {
+        var posts = _db.Posts
+            .OrderByDescending(x => x.CreationDate)
+            .Skip(settings.Skip!.Value)
+            .Take(settings.Take);
+        return await posts.ToListAsync();
     }
 
     [HttpGet("{id:guid}")]
@@ -214,7 +241,7 @@ public class PostsController : ControllerBase {
             return NotFound(id);
         }
 
-        return Ok(post);
+        return this.FixedOk(post);
     }
 
     [HttpGet("{id:guid}/attachements")]
@@ -226,9 +253,8 @@ public class PostsController : ControllerBase {
 
         return Ok(post.Attachments);
     }
-    
-    public class UploadModel
-    {
+
+    public class UploadModel {
         //Other inputs
         [Required]
         [DataType(DataType.Upload)]
@@ -238,5 +264,16 @@ public class PostsController : ControllerBase {
     public enum PostSort {
         New,
         Hot
+    }
+
+    public class CollectionSettings {
+        public int Take { get; set; } = 10;
+        public int? Skip { get; set; } = 0;
+    }
+
+    public class PostBody {
+        [MinLength(1)]
+        public string Text { get; set; }
+        public ICollection<Attachment>? Attachments { get; set; }
     }
 }

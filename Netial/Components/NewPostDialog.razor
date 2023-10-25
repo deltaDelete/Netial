@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components
 @using System.Security.Claims
 @using System.Net.Mime
+@using System.Collections.ObjectModel
 @attribute [Authorize]
 @inject AuthenticationStateProvider AuthState
 @inject ApplicationContext Db
@@ -28,6 +29,7 @@
                            @bind-Files="Files"
                            @ref="FileUpload"
                            Hidden="false"
+                           Required="false"
                            Validation="ValidateFiles"
                            MaximumFileCount="10"
                            name="files"
@@ -53,7 +55,7 @@
 @code {
     // todo: загрузка файлов
     private static readonly string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full z-10";
-    
+
     private Post _post = new Post();
     private string _dragClass = DefaultDragClass;
     private List<string> _fileNames = new List<string>();
@@ -78,7 +80,7 @@
     private void Cancel() {
         MudDialog.Cancel();
     }
-
+    
     private async Task Submit() {
         if (FileUpload.ValidationErrors.Any()) {
             foreach (var fileUploadValidationError in FileUpload.ValidationErrors) {
@@ -86,25 +88,27 @@
             }
             return;
         }
-        
-        
-        var handler = new HttpClientHandler();
-        handler.ClientCertificateOptions = ClientCertificateOption.Manual;
-        handler.ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true;
 
-        var client = new HttpClient(handler);
+
+        // var handler = new HttpClientHandler();
+        // handler.ClientCertificateOptions = ClientCertificateOption.Manual;
+        // handler.ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true;
+        // var client = new HttpClient(handler);
+        var client = ClientFactory.CreateClient("Post");
+
         client.Timeout = TimeSpan.FromMinutes(5);
-        client.BaseAddress = new Uri(NavManager.BaseUri);
-        var request = new HttpRequestMessage(HttpMethod.Post, "api/Posts");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{NavManager.BaseUri}api/Posts");
         var content = new MultipartFormDataContent();
         content.Add(new StringContent(_post.Text), "text");
         content.Add(new StringContent(_post.Author.Id.ToString()), "author");
 
-        foreach (var file in Files) {
-            var imageFile = await file.RequestImageFileAsync("image/jpg", 736, 400);
-            content.Add(new StreamContent(imageFile.OpenReadStream(10240000L)), "files", file.Name);
+        if (Files is not null) {
+            foreach (var file in Files) {
+                var imageFile = await file.RequestImageFileAsync("image/jpg", 736, 400);
+                content.Add(new StreamContent(imageFile.OpenReadStream(10240000L)), "files", file.Name);
+            }
         }
-        
+
         request.Content = content;
         await client.SendAsync(request);
         MudDialog.Close(DialogResult.Ok(_post.Id));
@@ -114,8 +118,7 @@
         ClearDragClass();
         _fileNames.Clear();
         var files = e.GetMultipleFiles();
-        foreach (var file in files)
-        {
+        foreach (var file in files) {
             _fileNames.Add(file.Name);
         }
     }
@@ -136,4 +139,5 @@
         }
         return result;
     }
+
 }

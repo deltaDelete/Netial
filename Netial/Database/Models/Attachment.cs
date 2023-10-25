@@ -9,7 +9,7 @@ public class Attachment {
     public Guid Id { get; set; }
     [JsonInclude]
     public string? Description { get; set; }
-    [JsonInclude]
+    [JsonIgnore]
     public string Link {
         get => $"/images/attachments/{Id}";
     }
@@ -17,9 +17,9 @@ public class Attachment {
     // Навигационные свойства
     
     [JsonIgnore]
-    public virtual ICollection<Size> Sizes { get; set; }
+    public virtual ICollection<Size>? Sizes { get; set; }
     [JsonIgnore]
-    public virtual ICollection<Post> Posts { get; set; }
+    public virtual ICollection<Post>? Posts { get; set; }
 }
 
 public class Size {
