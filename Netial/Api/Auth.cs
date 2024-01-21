@@ -64,6 +64,7 @@ public class Auth : ControllerBase {
         return Ok();
     }
     
+    [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterBody body) {
         string lastname = body.LastName;
         string firstname = body.FirstName;
